@@ -1,0 +1,7 @@
+### ignore data files
+*.csv
+*.soft
+*.txt
+*.tsv
+*.parquet
+*.h5ad
