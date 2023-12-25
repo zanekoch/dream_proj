@@ -21,7 +21,42 @@ class ExpressionDataset:
         """
         self.expression_df = expression_df
         self.metadata_df = metadata_df
-
+        
+    def read_dream_files(self) -> None:
+        """Read in DREAM files
+        ### Returns:
+        None
+        """
+        self.dream_regulated_genes = pd.read_csv(
+            "/cellar/users/zkoch/dream/bujarrabal_dueso/tableS12_dream_promoter_binding.csv", index_col=0
+            )
+        self.gene_conversion = pd.read_csv(
+            "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+            sep="\t", index_col=0, 
+            )
+    
+    def get_dream_gene_expression(self) -> pd.DataFrame:
+        """Get expression of DREAM genes, from self.dream_regulated_genes, in self.expression_df using self.gene_conversion
+        ### Returns:
+        dream_expression : pd.DataFrame
+            Expression values of DREAM genes
+        """
+        # check if dream files have been read in
+        if not hasattr(self, "dream_regulated_genes"):
+            self.read_dream_files()
+        # get human genes
+        dream_regulated_genes_names = self.dream_regulated_genes.index
+        # convert to mouse genes
+        dream_regulated_genes_names_converted = self.gene_conversion.loc[
+            dream_regulated_genes_names, "Mouse gene stable ID"
+            ]
+        dream_regulated_genes_names_converted.dropna(inplace=True)
+        # get expression of converted genes
+        dream_regulated_genes_w_expression = list(
+            set(dream_regulated_genes_names_converted).intersection(set(self.expression_df.index))
+            )
+        dream_expression = self.expression_df.loc[dream_regulated_genes_w_expression]
+        return dream_expression
 
 class DatasetLoader:
     """Class to load a dataset"""

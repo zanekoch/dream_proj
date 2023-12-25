@@ -5,3 +5,4 @@
 *.tsv
 *.parquet
 *.h5ad
+*.gz
