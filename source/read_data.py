@@ -8,19 +8,24 @@ class ExpressionDataset:
     def __init__(
         self, 
         expression_df: pd.DataFrame, 
+        expression_species: str,
         metadata_df: pd.DataFrame
         ) -> None:
         """Constructor for ExpressionDataset
         ### Parameters:
         expression_df : pd.DataFrame
-            Expression dataframe
+            Expression dataframe, samples x genes
+        expression_species : str
+            Species of expression dataframe
         metadata_df : pd.DataFrame
             Metadata dataframe
         ### Returns:
         None
         """
         self.expression_df = expression_df
+        self.expression_species = expression_species
         self.metadata_df = metadata_df
+        
         
     def read_dream_files(self) -> None:
         """Read in DREAM files
@@ -30,22 +35,34 @@ class ExpressionDataset:
         self.dream_regulated_genes = pd.read_csv(
             "/cellar/users/zkoch/dream/bujarrabal_dueso/tableS12_dream_promoter_binding.csv", index_col=0
             )
+        # replace spaces with underscores and make lowercase
+        self.dream_regulated_genes.columns = [
+            x.lower().replace(" ", "_") for x in self.dream_regulated_genes.columns
+            ]
         self.gene_conversion = pd.read_csv(
             "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
             sep="\t", index_col=0, 
             )
     
-    def get_dream_gene_expression(self) -> pd.DataFrame:
-        """Get expression of DREAM genes, from self.dream_regulated_genes, in self.expression_df using self.gene_conversion
+    def get_dream_gene_expression(
+        self,
+        row_limiting_query: str = None
+        ) -> pd.DataFrame:
+        """Get expression of DREAM genes
         ### Returns:
         dream_expression : pd.DataFrame
             Expression values of DREAM genes
+        row_limiting_query : str
+            Query to limit rows of dream_regulated_genes dataframe
         """
         # check if dream files have been read in
         if not hasattr(self, "dream_regulated_genes"):
             self.read_dream_files()
         # get human genes
-        dream_regulated_genes_names = self.dream_regulated_genes.index
+        if row_limiting_query:
+            dream_regulated_genes_names = self.dream_regulated_genes.query(row_limiting_query).index
+        else:
+            dream_regulated_genes_names = self.dream_regulated_genes.index
         # convert to mouse genes
         dream_regulated_genes_names_converted = self.gene_conversion.loc[
             dream_regulated_genes_names, "Mouse gene stable ID"
@@ -53,9 +70,9 @@ class ExpressionDataset:
         dream_regulated_genes_names_converted.dropna(inplace=True)
         # get expression of converted genes
         dream_regulated_genes_w_expression = list(
-            set(dream_regulated_genes_names_converted).intersection(set(self.expression_df.index))
+            set(dream_regulated_genes_names_converted).intersection(set(self.expression_df.columns))
             )
-        dream_expression = self.expression_df.loc[dream_regulated_genes_w_expression]
+        dream_expression = self.expression_df[dream_regulated_genes_w_expression].copy(deep = True)
         return dream_expression
 
 class DatasetLoader:
@@ -117,11 +134,13 @@ class DatasetLoader:
             )
         # create expression dataset objects
         across_species = ExpressionDataset(
-            expression_df=across_species_expr,
+            expression_df=across_species_expr.T,
+            expression_species="mouse", # df is indxd by mouse genes
             metadata_df=across_species_metadata
             )
         treated_mice = ExpressionDataset(
-            expression_df=treated_mice_expr,
+            expression_df=treated_mice_expr.T,
+            expression_species="mouse",
             metadata_df=treated_mice_metadata
             )
         return across_species, treated_mice
