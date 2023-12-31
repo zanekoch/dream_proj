@@ -4,9 +4,8 @@ library(SummarizedExperiment)
 
 output_dir <- "/Users/zanekoch/Documents/ucsd/dream_proj/tcga/GDCdata"
 
-datasets <- c("TCGA-BRCA", "TCGA-COAD")
-data_categories <- c("Transcriptome Profiling", "DNA Methlation", "Simple Nucleotide Variation")
-data_types  <- c("Gene Expression Quantification", "Methylation Beta Value", "Masked Somatic Mutation")
+datasets <- c("TCGA-COAD", "TCGA-BRCA")
+data_categories <- c("DNA Methylation","Transcriptome Profiling",  "Simple Nucleotide Variation")
 normal_sample_types <- c("Blood Derived Normal", "Solid Tissue Normal", "Buccal Cell Normal", "EBV Immortalized Normal", "Bone Marrow Normal")
 
 # if methylation then platform = "Illumina Human Methylation 450" or "Illumina Methylation Epic"
@@ -17,19 +16,38 @@ for (dataset in datasets) {
   for (category in data_categories) {
     # select dataypes
     if (category == "Transcriptome Profiling") {
-      dtype <- data_types[1]
-    } else if (category == "DNA Methlation") {
-      dtype <- data_types[2]
-      #platform <- c("Illumina Human Methylation 450", "Illumina Methylation Epic")
+      dtype <- "Gene Expression Quantification"
+      # query
+      query <- GDCquery(project = dataset, 
+                        data.category = category, 
+                        data.type = dtype,
+                        sample.type = normal_sample_types,
+                        )
+    } else if (category == "DNA Methylation") {
+      dtype <- "Methylation Beta Value"
+      # TCGA is all 450k/27k but we are only going to use 450k
+      if (startsWith(dataset, "TCGA")) {
+        platform <- "Illumina Human Methylation 450"
+      # while CPTAC and someothers are Epic
+      } else {
+        platform <- "Illumina Methylation Epic"
+      }
+      # query with platform
+      query <- GDCquery(project = dataset, 
+                        data.category = category, 
+                        data.type = dtype,
+                        sample.type = normal_sample_types,
+                        platform = platform
+                        )
     } else { # simple nucleotide variation
-      dtype <- data_types[3]
+      dtype <- "Masked Somatic Mutation"
+      # query
+      query <- GDCquery(project = dataset, 
+                        data.category = category, 
+                        data.type = dtype,
+                        sample.type = normal_sample_types,
+                        )
     }
-    # Download data
-    query <- GDCquery(project = dataset, 
-                      data.category = category, 
-                      data.type = dtype,
-                      sample.type = normal_sample_types,
-                      )
     
     GDCdownload(query, directory = output_dir)
     
@@ -46,39 +64,36 @@ for (dataset in datasets) {
 }
 
 
-
-
-
-query <- GDCquery(project = "TCGA-BRCA", 
-                  data.category = "Transcriptome Profiling", 
-                  data.type = "Gene Expression Quantification", 
-                  experimental.strategy = "RNA-Seq", 
-                  sample.type = "Solid Tissue Normal")
-query$results
-
-# choose the samples to download
-query_met.hg38 <- GDCquery(
-  project= "CPTAC-3", 
-  data.category = "Transcriptome Profiling", 
-  #data.type = "Methylation Beta Value",
-  #platform = "Illumina Human Methylation 450", 
-  #barcode = c("TCGA-HT-8111-01A-11D-2399-05","TCGA-HT-A5R5-01A-11D-A28N-05"),
-  #sample.type = "Solid Tissue Normal"
-  #sample.type = c("NB", "NT", "NBC", "NEBV", "NBM")
-  sample.type = c("Blood Derived Normal", "Solid Tissue Normal", "Buccal Cell Normal", "EBV Immortalized Normal", "Bone Marrow Normal")
+# CPTAC-3 mutations
+query <- GDCquery(
+  project = "CPTAC-3",
+  data.category = "Simple Nucleotide Variation",
+  data.type = "Masked Somatic Mutation", 
+  #workflow.type = "STAR - Counts",
+  #barcode = c("TCGA-14-0736-02A-01R-2005-01", "TCGA-06-0211-02A-02R-2005-01")
 )
-query_met.hg38$results
+View(getResults(query))
 
-# download them to GDCdata dir
-GDCdownload(query_met.hg38, directory = "/Users/zanekoch/Documents/ucsd/dream_proj/tcga/GDCdata")
-# can  set summarizedExperiment to FALSE to get a df
-data.hg38 <- GDCprepare(
-  query_met.hg38, summarizedExperiment = FALSE,
-  directory = "/Users/zanekoch/Documents/ucsd/dream_proj/tcga/GDCdata"
-  )
+table(getResults(query)$sample_type)
 
-colData(data.hg38)
-# data matrix
-assay(data.hg38)
-# not sure what this is 
-rowRanges(data.hg38)
+# CPTAC-3 expr
+query1 <- GDCquery(
+  project = "CPTAC-3",
+  data.category = "Transcriptome Profiling",
+  data.type = "Gene Expression Quantification", 
+  #workflow.type = "STAR - Counts",
+  #barcode = c("TCGA-14-0736-02A-01R-2005-01", "TCGA-06-0211-02A-02R-2005-01")
+)
+table(getResults(query1)$sample_type)
+
+# CPTAC-3 methyl
+query2 <- GDCquery(
+  project = "CPTAC-3",
+  data.category = "DNA Methylation",
+  data.type = "Methylation Beta Value", 
+  #workflow.type = "STAR - Counts",
+  #barcode = c("TCGA-14-0736-02A-01R-2005-01", "TCGA-06-0211-02A-02R-2005-01")
+)
+table(getResults(query2)$sample_type)
+
+
