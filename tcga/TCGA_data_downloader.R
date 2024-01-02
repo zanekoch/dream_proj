@@ -1,3 +1,8 @@
+### Usage ###
+# Active r_go conda environment 
+# Start R by typing R in the terminal
+# run through this script line by line with command + enter
+
 library(TCGAbiolinks)
 library(DT)
 library(SummarizedExperiment)
@@ -7,8 +12,6 @@ options(timeout = 6000)
 #datasets <- c("TCGA-COAD", "TCGA-BRCA")
 #data_categories <- c("DNA Methylation","Transcriptome Profiling",  "Simple Nucleotide Variation")
 #normal_sample_types <- c("Blood Derived Normal", "Solid Tissue Normal", "Buccal Cell Normal", "EBV Immortalized Normal", "Bone Marrow Normal")
-
-
 
 # write a function that takes in a project and returns the samples with both mutation and expression data
 # and then download the data for those samples
@@ -21,7 +24,8 @@ query_mut <- GDCquery(
   data.category = "Simple Nucleotide Variation",
   data.type = "Masked Somatic Mutation", 
   access = "open"
-)
+  # need to add workflow type???
+) 
 # get expression data
 query_expr <- GDCquery(
   project = project,

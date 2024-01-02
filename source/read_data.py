@@ -33,7 +33,7 @@ class ExpressionDataset:
         None
         """
         self.dream_regulated_genes = pd.read_csv(
-            "/cellar/users/zkoch/dream/bujarrabal_dueso/tableS12_dream_promoter_binding.csv", index_col=0
+            "/cellar/users/zkoch/dream/data/bujarrabal_dueso/tableS12_dream_promoter_binding.csv", index_col=0
             )
         # replace spaces with underscores and make lowercase
         self.dream_regulated_genes.columns = [
@@ -73,7 +73,7 @@ class ExpressionDataset:
             set(dream_regulated_genes_names_converted).intersection(set(self.expression_df.columns))
             )
         dream_expression = self.expression_df[dream_regulated_genes_w_expression].copy(deep = True)
-        return dream_expression
+        self.dream_expression = dream_expression
 
 class DatasetLoader:
     """Class to load a dataset"""
@@ -111,7 +111,7 @@ class DatasetLoader:
             Expression dataset for treated mice
         """
         # paths
-        dataset_path = "/cellar/users/zkoch/dream/msalt"
+        dataset_path = "/cellar/users/zkoch/dream/data/msalt"
         across_species_fn = "across_species.csv"
         across_species_metadata_fn = "across_species_meta.soft"
         treated_mice_fn = "treated_mice.csv"
