@@ -8,22 +8,22 @@ class ExpressionDataset:
     def __init__(
         self, 
         expression_df: pd.DataFrame, 
-        expression_species: str,
+        species: str,
         metadata_df: pd.DataFrame
         ) -> None:
         """Constructor for ExpressionDataset
         ### Parameters:
         expression_df : pd.DataFrame
             Expression dataframe, samples x genes
-        expression_species : str
-            Species of expression dataframe
+        species : str
+            String identifyin the species used to define genes in expression_df
         metadata_df : pd.DataFrame
             Metadata dataframe
         ### Returns:
         None
         """
         self.expression_df = expression_df
-        self.expression_species = expression_species
+        self.species = species
         self.metadata_df = metadata_df
         
         
@@ -79,12 +79,13 @@ class DatasetLoader:
     """Class to load a dataset"""
     def __init__(
         self,
-        dataset_name:str
+        dataset_name:str,
         ) -> None:
         """Constructor for DatasetLoader
         ### Parameters
         dataset_name : str
             Name of the dataset to load
+        
         ### Returns
         None
         """
@@ -99,6 +100,8 @@ class DatasetLoader:
         if self.dataset_name == "mSalt":
             across_species, treated_mice = self.load_mSalt()
             return across_species, treated_mice
+        elif self.dataset_name == 'CPTAC-3':
+            tcga = self.load_tcga()
         else:
             raise NotImplementedError(f"Dataset {self.dataset_name} not implemented")
 
@@ -135,15 +138,19 @@ class DatasetLoader:
         # create expression dataset objects
         across_species = ExpressionDataset(
             expression_df=across_species_expr.T,
-            expression_species="mouse", # df is indxd by mouse genes
+            species="mouse", # df is indxd by mouse genes
             metadata_df=across_species_metadata
             )
         treated_mice = ExpressionDataset(
             expression_df=treated_mice_expr.T,
-            expression_species="mouse",
+            species="mouse",
             metadata_df=treated_mice_metadata
             )
         return across_species, treated_mice
+        
+    def load_tcga(self) -> list[ExpressionDataset]:
+        dataset_path = os.path.join("/cellar/users/zkoch/dream/data/tcga/GDCdata", self.dataset_name)
+        
         
     def read_soft(
         self,
@@ -214,4 +221,10 @@ class DatasetLoader:
         metadata = pd.DataFrame(metadata)
         return metadata
 
-
+    def read_tcgabiolinks_files(
+        self,
+        path: 
+        ): 
+        """Load a dataset from the many directories created by TCGABiolinks
+        ### Parameters
+        
