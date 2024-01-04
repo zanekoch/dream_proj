@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import pandas as pd
 from collections import defaultdict
+import glob
+import dask.dataframe as dd
 
 class ExpressionDataset:
     """ Class to represent an expression dataset """
@@ -75,6 +77,44 @@ class ExpressionDataset:
         dream_expression = self.expression_df[dream_regulated_genes_w_expression].copy(deep = True)
         self.dream_expression = dream_expression
 
+class MutationDataset:
+    """ Class to represent a mutation dataset """
+    def __init__(
+        self, 
+        mutation_df: pd.DataFrame, 
+        metadata_df: pd.DataFrame
+        ) -> None:
+        """Constructor for MutationDataset
+        ### Parameters:
+        mutation_df : pd.DataFrame
+            Mutation dataframe, samples x genes
+        metadata_df : pd.DataFrame
+            Metadata dataframe
+        ### Returns:
+        None
+        """
+        self.mutation_df = mutation_df
+        self.metadata_df = metadata_df
+
+class MethylationDataset:
+    """ Class to represent a methylation dataset """
+    def __init__(
+        self, 
+        methylation_df: pd.DataFrame, 
+        metadata_df: pd.DataFrame
+        ) -> None:
+        """Constructor for MethylationDataset
+        ### Parameters:
+        methylation_df : pd.DataFrame
+            Methylation dataframe, samples x genes
+        metadata_df : pd.DataFrame
+            Metadata dataframe
+        ### Returns:
+        None
+        """
+        self.methylation_df = methylation_df
+        self.metadata_df = metadata_df
+
 class DatasetLoader:
     """Class to load a dataset"""
     def __init__(
@@ -91,19 +131,21 @@ class DatasetLoader:
         """
         self.dataset_name = dataset_name
 
-    def load_dataset(self) -> list[ExpressionDataset]:
+    def load_dataset(self) -> list:
         """Load the dataset based on the dataset_name
         ### Returns
-        A list of ExpressionDataset objects : list[ExpressionDataset]
+        A list of dataset objects : list
+            The contents of this list depends on the dataset. mSalt it is a list of two ExpressionDataset objects, across_species and treated_mice. For CPTAC-3 it is an [ExpressionDataset, MutationDataset, MethylationDataset]
         """
         print(f"Loading dataset: {self.dataset_name}")
         if self.dataset_name == "mSalt":
-            across_species, treated_mice = self.load_mSalt()
-            return across_species, treated_mice
+            dataset_list = self.load_mSalt()
         elif self.dataset_name == 'CPTAC-3':
-            tcga = self.load_tcga()
+            dataset_list = self.load_tcga()
         else:
             raise NotImplementedError(f"Dataset {self.dataset_name} not implemented")
+        return dataset_list
+        
 
     def load_mSalt(self) -> list[ExpressionDataset]:
         """Load the mSalt dataset
@@ -148,9 +190,72 @@ class DatasetLoader:
             )
         return across_species, treated_mice
         
-    def load_tcga(self) -> list[ExpressionDataset]:
-        dataset_path = os.path.join("/cellar/users/zkoch/dream/data/tcga/GDCdata", self.dataset_name)
-        
+    def load_tcga(self) -> list[ExpressionDataset, MutationDataset, MethylationDataset]:
+        """Load a TCGA dataset based on self.dataset_name
+        ### Returns
+        A list of a subset of ExpressionDataset, MutationDataset, MethylationDataset
+        """
+        # find the files for this dataset
+        processed_data_dir = "/cellar/users/zkoch/dream/data/tcga/processed_data"
+        dataset_files = glob.glob(os.path.join(processed_data_dir, self.dataset_name +  "*"))
+        # initialize empty fns
+        metadata_fn, expression_fn, mutation_fn, methylation_dir, methylation_fn = "","","","",""
+        for dataset_fn in dataset_files:
+            # if the fn contains metadata
+            if "metadata" in dataset_fn:
+                metadata_fn = dataset_fn
+            elif "expression" in dataset_fn:
+                expression_fn = dataset_fn
+            elif "mutation" in dataset_fn:
+                mutation_fn = dataset_fn
+            elif "methylation_dask" in dataset_fn:
+                methylation_dir = dataset_fn
+            elif "methylation.parquet" in dataset_fn:
+                methylation_fn = dataset_fn
+            else:
+                print(f"Unknown file type: {dataset_fn}")
+        # create datasets based on what files we have
+        expression_dataset, mutation_dataset, methylation_dataset = None, None, None
+        if metadata_fn == "":
+            raise ValueError(f"Metadata file not found for {self.dataset_name}")
+        else:
+            metadata_df = pd.read_parquet(metadata_fn)
+            print(f"Loaded metadata for {self.dataset_name}")
+        if expression_fn != "":
+            expression_df = pd.read_parquet(expression_fn)
+            expression_dataset = ExpressionDataset(
+                expression_df=expression_df,
+                species="human",
+                metadata_df=metadata_df
+                )
+            print(f"Created ExpressionDataset for {self.dataset_name}")
+        if mutation_fn != "":
+            mutation_df = pd.read_parquet(mutation_fn)
+            mutation_dataset = MutationDataset(
+                mutation_df=mutation_df,
+                metadata_df=metadata_df
+                )
+            print(f"Created MutationDataset for {self.dataset_name}")
+        if methylation_dir != "":
+            print("reading dask methylation df")
+            methylation_dd = dd.read_parquet(methylation_fn)
+            # convert to pandas df
+            methylation_df = methylation_dd.compute()
+            methylation_dataset = MethylationDataset(
+                methylation_df=methylation_df,
+                metadata_df=metadata_df
+                )
+            print(f"Created MethylationDataset for {self.dataset_name}")
+        # load from methylation fn if we don't have a methylation dir
+        elif methylation_fn != "":
+            methylation_df = pd.read_parquet(methylation_fn)
+            methylation_dataset = MethylationDataset(
+                methylation_df=methylation_df,
+                metadata_df=metadata_df
+                )
+            print(f"Created MethylationDataset for {self.dataset_name}")
+            
+        return [expression_dataset, mutation_dataset, methylation_dataset]
         
     def read_soft(
         self,
@@ -221,10 +326,4 @@ class DatasetLoader:
         metadata = pd.DataFrame(metadata)
         return metadata
 
-    def read_tcgabiolinks_files(
-        self,
-        path: 
-        ): 
-        """Load a dataset from the many directories created by TCGABiolinks
-        ### Parameters
-        
+    
