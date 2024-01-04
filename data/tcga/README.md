@@ -1,11 +1,13 @@
 ## Data downloading
 ### Step 1: Data using TCGABiolinks
-Run TCGA_data_downloader.R to get the desired project and datatypes, populating a `GDCdata` folder with the data.
+Run TCGA_data_downloader.R (Use conda environment `r_go`) to get the desired project and datatypes, populating a `GDCdata` folder with the data. 
 ### Step 2: Metadata/samplesheet
-Select the same samples on the TCGA GDC website. Add them to cart. Go to cart. Download clinical (aka metdata) and sample sheet. Upload using sftp to this cluster. Unpack the clinical and use clinical.csv 
+Select the same samples on the TCGA GDC website. Add them to cart. Go to cart. Download clinical (aka metdata) and sample sheet. Upload using sftp to this cluster. Unpack the clinical and use clinical.csv. This creates `/dream/data/tcga/manual_download/CPTAC-3/clinical.tsv` and `/dream/data/tcga/manual_download/CPTAC-3/sample_sheet.tsv`. Remove rows of the sample sheet that are indistinguishable but map to different files. Currently unknown what causes this but my choice was to keep the first row and remove the rest. This creates `/dream/data/tcga/manual_download/CPTAC-3/sample_sheetsample_sheet_no_duplicate_rows.tsv`.
 ### Step 3: Data processing
-Run `/cellar/users/zkoch/dream/source/process_tcgabiolinks.py` with the samplesheet, metdata, and path to each project-datatype pair to create data matrices with synchronized sample IDs and such. Outputs to `data/tcga/processed/`.
-
+Run `/dream/source/process_tcgabiolinks.py` (Use conda environment `dream_proj`) with the unduplicated samplesheet, metadata, and path to each project-datatype pair to create data matrices with synchronized sample IDs and such. Outputs to `/dream/data/tcga/processed/CPTAC-3_mutation.parquet` and `/dream/data/tcga/processed/CPTAC-3_expression.parquet` etc.
+### Step 4: Manual BS
+Do they steps in `/cellar/users/zkoch/dream/notebooks/010224_process_tcga_data.ipynb` to clean the data and form a nice metadata table. This creates `/dream/data/tcga/processed/CPTAC-3_metadata.parquet`.
 
 ### Log
-#### CPTAC-3: Added methylation, somatic mutaiton, and expression files to cart. Downloaded sample sheet and clinical (1,235 samples and 5646 files) to `tcga/manual_download/CPTAC-3`
+#### CPTAC-3: 
+Added methylation, somatic mutaiton, and expression files to cart. Downloaded sample sheet and clinical (1,235 samples and 5,646 files) to `tcga/manual_download/CPTAC-3`.

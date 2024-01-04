@@ -4,6 +4,12 @@ import argparse
 import glob
 import argparse
 
+"""Script usage
+
+"""
+
+
+
 def combine_tcgabiolinks_files(
     path: str,
     datatype: str,
@@ -21,7 +27,7 @@ def combine_tcgabiolinks_files(
     if datatype == 'mutation':
         all_files = glob.glob(os.path.join(path, "*/*.maf.gz"))
     elif datatype == 'expression':
-        all_files = glob.glob(os.path.join(path, "*/b*.tsv"))
+        all_files = glob.glob(os.path.join(path, "*/*.tsv"))
     else:
         raise NotImplementedError(f"Datatype {datatype} not implemented")
     # read each file into a list of dataframes
@@ -54,7 +60,10 @@ def read_expression_file(
         Dataframe with genes as index and one column for the TPM of this file's 
     """
     # set row 2 as header and first column as index
-    df = pd.read_csv(fn, sep='\t', index_col=None, low_memory=False, header=1)
+    df = pd.read_csv(
+        fn, sep='\t', index_col=None,
+        low_memory=False, header=1
+        )
     # drop first 4 rows
     df.drop(df.index[:4], inplace=True)
     # get the case id etc. from the filename
@@ -62,13 +71,16 @@ def read_expression_file(
     this_file_sample_sheet = sample_sheet.query(
             "`File Name` == @fn_no_path"
             )
+    if len(this_file_sample_sheet) == 0:
+        # this was a file that was removed from the sample sheet due to duplication
+        return pd.DataFrame()
     # based on the file name, get the case id etc. from the sample sheet
     # `first` because of the processing done in /cellar/users/zkoch/dream/notebooks/010224_process_tcga_data.ipynb to remove lists of case/sample IDs
-    df['case_id'] = this_file_sample_sheet['first_case_id'].values[0]    
-    df['sample_id'] = this_file_sample_sheet['first_sample_id'].values[0]
-    df['sample_type'] = this_file_sample_sheet['first_sample_type'].values[0]
+    df['first_case_id'] = this_file_sample_sheet['first_case_id'].values[0]    
+    df['first_sample_id'] = this_file_sample_sheet['first_sample_id'].values[0]
+    df['sample_type'] = this_file_sample_sheet['Sample Type'].values[0]
     pivoted_df = df[['gene_id', 'tpm_unstranded']].set_index('gene_id')
-    pivoted_df.columns = [df['sample_id'].values[0]]
+    pivoted_df.columns = [df['first_sample_id'].values[0]]
     return pivoted_df
 
 def read_mutation_file(
@@ -95,38 +107,16 @@ def read_mutation_file(
     this_file_sample_sheet = sample_sheet.query(
             "`File Name` == @fn_no_path"
             )
+    if len(this_file_sample_sheet) == 0:
+        # this was a file that was removed from the sample sheet due to duplication
+        return pd.DataFrame()
+    
     # based on the file name, get the case id etc. from the sample sheet
-    df['case_id'] = this_file_sample_sheet['first_case_id'].values[0]    
-    df['sample_id'] = this_file_sample_sheet['Sample ID'].values[0]
+    df['first_case_id'] = this_file_sample_sheet['first_case_id'].values[0]    
+    df['first_sample_id'] = this_file_sample_sheet['first_sample_id'].values[0]
     df['sample_type'] = this_file_sample_sheet['Sample Type'].values[0]
     return df
 
-def map_fn_to_caseid(
-    fn_no_path : str,
-    sample_sheet : pd.DataFrame,
-    df : pd.DataFrame
-    ) -> pd.DataFrame:
-    """Map the filename to the case ID
-    ### Parameters
-    fn_no_path : str
-        Filename without path
-    sample_sheet : pd.DataFrame
-        Sample sheet
-    df : pd.DataFrame
-        Dataframe with mutation/expression data
-    ### Returns 
-    df : pd.DataFrame
-        Dataframe with mutation/expression data and case/sample IDs added
-    """ 
-    this_file_sample_sheet = sample_sheet.query(
-            "`File Name` == @fn_no_path"
-            )
-    # based on the file name, get the case id etc. from the sample sheet
-    # `first` because of the processing done in /cellar/users/zkoch/dream/notebooks/010224_process_tcga_data.ipynb to remove lists of case/sample IDs
-    df['case_id'] = this_file_sample_sheet['first_case_id'].values[0]    
-    df['sample_id'] = this_file_sample_sheet['first_sample_id'].values[0]
-    df['sample_type'] = this_file_sample_sheet['first_sample_type'].values[0]
-    return df
     
 def main(
     path: str = None,
@@ -200,8 +190,8 @@ def main(
         sample_sheet=sample_sheet
     )
     # save as parquet
-    #df.to_parquet(os.path.join(output_path, f"{dataset_name}_{datatype}.parquet"))
-    #print(f"Saved to {os.path.join(output_path, f'{dataset_name}_{datatype}.parquet')}")
+    df.to_parquet(os.path.join(output_path, f"{dataset_name}_{datatype}.parquet"))
+    print(f"Saved to {os.path.join(output_path, f'{dataset_name}_{datatype}.parquet')}")
     return df 
 
 if __name__ == "__main__":

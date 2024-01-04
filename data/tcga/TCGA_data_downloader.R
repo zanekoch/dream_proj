@@ -27,14 +27,18 @@ query_expr <- GDCquery(
   workflow.type = "STAR - Counts",
   access = "open",
 )
+# get methylation data
+query_meth <- GDCquery(
+  project = project,
+  data.category = "DNA Methylation",
+  data.type = "Methylation Beta Value", 
+  access = "open",
+)
 # print how many samples of each type
 print(paste("Mutation samples:", length(getResults(query_mut, cols = "cases"))))
 print(paste("Expression samples:", length(table(getResults(query_expr, cols = "cases")))))
-shared_samples <- intersect(
-    substr(getResults(query_mut, cols = "cases"), 1, 12),
-    substr(getResults(query_expr, cols = "cases"), 1, 12)
-)
-print(paste("Samples with both mutation and expression data:", length(shared_samples)))
+print(paste("Methylation samples:", length(table(getResults(query_meth, cols = "cases")))))
+
 # save file to sample mappings
 file_mapping_mut = getResults(query_mut)
 file_mapping_expr = getResults(query_expr)
@@ -43,15 +47,6 @@ file_mapping_expr = getResults(query_expr)
 
 GDCdownload(query_mut, directory = output_dir)
 GDCdownload(query_expr, directory = output_dir)
+GDCdownload(query_meth, directory = output_dir)
 print("Downloaded data")
-# Load the data as a SummarizedExperiment
-data_mut <- GDCprepare(query_mut, directory = output_dir, summarizedExperiment = FALSE)
-data_expr <- GDCprepare(query_expr, directory = output_dir, summarizedExperiment = FALSE)
-# return the data
-return(list(data_mut, data_expr))
-  #}
 
-# run the function
-data <- get_mut_expr_samples("CPTAC-3")
-
-tab <-  getSampleFilesSummary(project = "CPTAC-3")
