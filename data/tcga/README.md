@@ -11,3 +11,6 @@ Do they steps in `/cellar/users/zkoch/dream/notebooks/010224_process_tcga_data.i
 ### Log
 #### CPTAC-3: 
 Added methylation, somatic mutaiton, and expression files to cart. Downloaded sample sheet and clinical (1,235 samples and 5,646 files) to `tcga/manual_download/CPTAC-3`.
+##### Cell cycle processing
+Done using scanpy in `/cellar/users/zkoch/dream/notebooks/010824_cellCycle_deconv.ipynb` and the cell cycle assignments are in `/cellar/users/zkoch/dream/data/tcga/processed_data/CPTAC-3_cell_cycle_scores.parquet` (using cellXgene2 environment)
+Done using scanpy in `/cellar/users/zkoch/dream/notebooks/010824_cellCycle_deconv.ipynb` and the cell cycle assignments are in `/cellar/users/zkoch/dream/data/tcga/processed_data/CPTAC-3_cell_cycle_scores.parquet` (using cellXgene2 environment)
