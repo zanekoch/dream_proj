@@ -4,6 +4,7 @@ import pandas as pd
 from collections import defaultdict
 import glob
 import dask.dataframe as dd
+import numpy as np
 
 class ExpressionDataset:
     """ Class to represent an expression dataset """
@@ -11,7 +12,8 @@ class ExpressionDataset:
         self, 
         expression_df: pd.DataFrame, 
         species: str,
-        metadata_df: pd.DataFrame
+        metadata_df: pd.DataFrame,
+        dataset: str
         ) -> None:
         """Constructor for ExpressionDataset
         ### Parameters:
@@ -21,26 +23,39 @@ class ExpressionDataset:
             String identifyin the species used to define genes in expression_df
         metadata_df : pd.DataFrame
             Metadata dataframe
+        dataset : str
+            Dataset name
         ### Returns:
         None
         """
         self.expression_df = expression_df
         self.species = species
         self.metadata_df = metadata_df
+        self.dataset = dataset
         # remove the trailing .N or .NN from genes if present
         self.expression_df.columns = self.expression_df.columns.str.replace(
             r'\.\d+$', '', regex=True
             )
         # do again incase multiple .N or .NN
         self.expression_df.columns = self.expression_df.columns.str.split(".").str[0]
-        # add ages, tissue, cancer type, tissue, sample_type, and case_id 
-        self.meta_cols = ['age_at_index', 'primary_diagnosis', 'tissue_or_organ_of_origin', 'case_id', 'sample_type']
-        self.expression_df = self.expression_df.merge(
-            self.metadata_df[self.meta_cols],
-            left_index=True, right_index=True
-            )
-        # add a column specifying the number of samples a case has
-        self.get_num_samples_per_case()
+        
+        if self.dataset == 'tcga':
+            # add ages, tissue, cancer type, tissue, sample_type, and case_id 
+            self.meta_cols = ['age_at_index', 'primary_diagnosis', 'tissue_or_organ_of_origin', 'case_id', 'sample_type']
+            self.expression_df = self.expression_df.merge(
+                self.metadata_df[self.meta_cols],
+                left_index=True, right_index=True
+                )
+            # add a column specifying the number of samples a case has
+            self.get_num_samples_per_case()
+            # simplify tissue and cancer names
+            self.simplify_tissue_and_cancer_names()
+        elif self.dataset == 'mSalt':
+            self.meta_cols = self.metadata_df.columns.to_list()
+            self.expression_df = self.expression_df.merge(
+                self.metadata_df,
+                left_index=True, right_on = 'sample_name'
+                )
         
     
     def get_num_samples_per_case(self) -> None:
@@ -139,6 +154,87 @@ class ExpressionDataset:
             self.dream_regulated_genes_w_expression + self.meta_cols
             ].copy(deep = True)
         self.dream_expression = dream_expression
+        
+    def simplify_tissue_and_cancer_names(self) -> None:
+        """Simplify tissue names
+        ### Returns:
+        None
+        """
+        # map to simple tissue names
+        simple_tissue_map = {
+            # kidney
+            'Kidney, NOS': 'Kidney',
+            # lung
+            'Upper lobe, lung': 'Lung',
+            'Lower lobe, lung' : 'Lung',
+            'Lung, NOS' : 'Lung',
+            'Middle lobe, lung' : 'Lung',
+            # brain
+            'Brain, NOS' : 'Brain',
+            'Parietal lobe' : 'Brain',
+            'Temporal lobe' : 'Brain',
+            'Frontal lobe' : 'Brain',
+            'Occipital lobe' : 'Brain',
+            # uterus
+            'Corpus uteri' : 'Uterus',
+            'Endometrium' : 'Uterus',
+            # pancreas 
+            'Pancreas, NOS' : 'Pancreas',
+            'Head of pancreas' : 'Pancreas',
+            'Tail of pancreas' : 'Pancreas',
+            'Body of pancreas' : 'Pancreas',
+            # head and neck
+            'Larynx, NOS': 'Mouth',
+            'Tongue, NOS' : 'Mouth',
+            'Gum, NOS' : 'Mouth',
+            'Overlapping lesion of lip, oral cavity and pharynx' : 'Mouth',
+            'Floor of mouth, NOS' : 'Mouth',
+            'Cheek mucosa' : 'Mouth',
+            'Tonsil, NOS' : 'Mouth',
+            'Head, face or neck, NOS' : 'Mouth',
+            'Lip, NOS' : 'Mouth',
+            'Oropharynx, NOS' : 'Mouth',
+            'Base of tongue, NOS' : 'Mouth'
+            }    
+        self.expression_df['tissue'] = self.expression_df['tissue_or_organ_of_origin'].map(simple_tissue_map)
+        # drop uknown, none, or nan
+        self.expression_df = self.expression_df.query(
+            "tissue != 'Unknown' and tissue != 'None'"
+            )
+        self.expression_df.dropna(subset=['tissue'], inplace=True)
+        simple_cancer_map = {
+            'Renal cell carcinoma, NOS' : 'Renal cell carcinoma',
+            'Endometrioid adenocarcinoma, NOS' : 'Endometrioid adenocarcinoma', # uteran
+            'Adenocarcinoma, NOS' : 'Adenocarcinoma',
+            'Glioblastoma' : 'Glioblastoma',
+            'Squamous cell carcinoma, NOS' : 'Squamous cell carcinoma', # skin
+            'Infiltrating duct carcinoma, NOS' : 'Infiltrating duct carcinoma', # breast
+            'Oligodendroglioma, anaplastic' : 'Oligodendroglioma',
+            'Oligodendroglioma, NOS' : 'Oligodendroglioma',
+        }
+        self.expression_df['cancer_type'] = self.expression_df['primary_diagnosis'].map(simple_cancer_map)
+        # drop uknown, none, or nan
+        self.expression_df = self.expression_df.query(
+            "cancer_type != 'Unknown' and cancer_type != 'None'"
+            )
+        self.expression_df.dropna(subset=['cancer_type'], inplace=True)
+        self.meta_cols.extend(['tissue', 'cancer_type'])
+            
+    def log_scale_expr(self) -> None:
+        """Log scale the expression df
+        ### Returns:
+        None
+        """
+        numerical_cols = self.expression_df.columns[self.expression_df.dtypes != object]
+        non_numerical_cols = self.expression_df.columns[self.expression_df.dtypes == object]
+        # log scale the numerical columns
+        scaled_numerical_cols = np.log2(
+            self.expression_df[numerical_cols] + 1
+            )
+        # reconstruct the df
+        self.expression_df = pd.concat(
+            [scaled_numerical_cols, self.expression_df[non_numerical_cols]], axis=1
+        )
 
 class MutationDataset:
     """ Class to represent a mutation dataset """
@@ -162,6 +258,8 @@ class MutationDataset:
         self.process_mutations()
         # add a column specifying the number of samples a case has
         self.get_num_samples_per_case()    
+        # simplify tissue and cancer names
+        self.simplify_tissue_and_cancer_names()
     
     def process_mutations(self) -> None:
         """Select columns we want and calculate the mutation burden for each sample
@@ -226,6 +324,70 @@ class MutationDataset:
             'case_id'
             ].map(sample_id_count.to_dict())
 
+    def simplify_tissue_and_cancer_names(self) -> None:
+        """Simplify tissue names
+        ### Returns:
+        None
+        """
+        # map to simple tissue names
+        simple_tissue_map = {
+            # kidney
+            'Kidney, NOS': 'Kidney',
+            # lung
+            'Upper lobe, lung': 'Lung',
+            'Lower lobe, lung' : 'Lung',
+            'Lung, NOS' : 'Lung',
+            'Middle lobe, lung' : 'Lung',
+            # brain
+            'Brain, NOS' : 'Brain',
+            'Parietal lobe' : 'Brain',
+            'Temporal lobe' : 'Brain',
+            'Frontal lobe' : 'Brain',
+            'Occipital lobe' : 'Brain',
+            # uterus
+            'Corpus uteri' : 'Uterus',
+            'Endometrium' : 'Uterus',
+            # pancreas 
+            'Pancreas, NOS' : 'Pancreas',
+            'Head of pancreas' : 'Pancreas',
+            'Tail of pancreas' : 'Pancreas',
+            'Body of pancreas' : 'Pancreas',
+            # head and neck
+            'Larynx, NOS': 'Mouth',
+            'Tongue, NOS' : 'Mouth',
+            'Gum, NOS' : 'Mouth',
+            'Overlapping lesion of lip, oral cavity and pharynx' : 'Mouth',
+            'Floor of mouth, NOS' : 'Mouth',
+            'Cheek mucosa' : 'Mouth',
+            'Tonsil, NOS' : 'Mouth',
+            'Head, face or neck, NOS' : 'Mouth',
+            'Lip, NOS' : 'Mouth',
+            'Oropharynx, NOS' : 'Mouth',
+            'Base of tongue, NOS' : 'Mouth'
+            }    
+        self.mutation_burden['tissue'] = self.mutation_burden['tissue_or_organ_of_origin'].map(simple_tissue_map)
+        # drop uknown, none, or nan
+        self.mutation_burden = self.mutation_burden.query(
+            "tissue != 'Unknown' and tissue != 'None'"
+            )
+        self.mutation_burden.dropna(subset=['tissue'], inplace=True)
+        simple_cancer_map = {
+            'Renal cell carcinoma, NOS' : 'Renal cell carcinoma',
+            'Endometrioid adenocarcinoma, NOS' : 'Endometrioid adenocarcinoma', # uteran
+            'Adenocarcinoma, NOS' : 'Adenocarcinoma',
+            'Glioblastoma' : 'Glioblastoma',
+            'Squamous cell carcinoma, NOS' : 'Squamous cell carcinoma', # skin
+            'Infiltrating duct carcinoma, NOS' : 'Infiltrating duct carcinoma', # breast
+            'Oligodendroglioma, anaplastic' : 'Oligodendroglioma',
+            'Oligodendroglioma, NOS' : 'Oligodendroglioma',
+        }
+        self.mutation_burden['cancer_type'] = self.mutation_burden['primary_diagnosis'].map(simple_cancer_map)
+        # drop uknown, none, or nan
+        self.mutation_burden = self.mutation_burden.query(
+            "cancer_type != 'Unknown' and cancer_type != 'None'"
+            )
+        self.mutation_burden.dropna(subset=['cancer_type'], inplace=True)
+        
 class MethylationDataset:
     """ Class to represent a methylation dataset """
     def __init__(
@@ -325,12 +487,14 @@ class DatasetLoader:
         across_species = ExpressionDataset(
             expression_df=across_species_expr.T,
             species="mouse", # df is indxd by mouse genes
-            metadata_df=across_species_metadata
+            metadata_df=across_species_metadata,
+            dataset="mSalt"
             )
         treated_mice = ExpressionDataset(
             expression_df=treated_mice_expr.T,
             species="mouse",
-            metadata_df=treated_mice_metadata
+            metadata_df=treated_mice_metadata,
+            dataset="mSalt"
             )
         return across_species, treated_mice
         
@@ -376,7 +540,8 @@ class DatasetLoader:
             expression_dataset = ExpressionDataset(
                 expression_df=expression_df.T,
                 species="human",
-                metadata_df=expr_metadata_df
+                metadata_df=expr_metadata_df,
+                dataset="tcga"
                 )
             print(f"Created ExpressionDataset for {self.dataset_name}")
         if mutation_fn != "" and self.load_mutation:
