@@ -1,0 +1,52 @@
+Job ID: 678234
+Job User: zkoch
+Num Cores: 32
+Array Job ID: 678234
+CUDA_VISIBLE_DEVICES: 
+Registered S3 method overwritten by 'zellkonverter':
+  method                from      
+  py_to_r.numpy.ndarray reticulate
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+Renaming the first element in assays(Data) to 'counts'
+Warning messages:
+1: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 19.0 GiB
+2: The `guide` argument in `scale_*()` cannot be `FALSE`. This was deprecated in
+ggplot2 3.3.4.
+ℹ Please use "none" instead.
+ℹ The deprecated feature was likely used in the SCnorm package.
+  Please report the issue at <https://github.com/rhondabacher/SCnorm/issues>. 
+# A tibble: 10 × 3
+   X1.Group  mean     sd
+      <int> <dbl>  <dbl>
+ 1        1 0.552 0.139 
+ 2        2 0.656 0.0731
+ 3        3 0.706 0.0629
+ 4        4 0.748 0.0823
+ 5        5 0.783 0.0694
+ 6        6 0.819 0.0667
+ 7        7 0.843 0.0649
+ 8        8 0.873 0.0647
+ 9        9 0.911 0.0795
+10       10 0.975 0.118 
+Renaming the first element in assays(Data) to 'counts'
+Setting up parallel computation using 63 cores
+Error in if ((sum(do.call(c, SeqDepthList) == 10000)/(nrow(Counts) * ncol(Counts))) >=  : 
+  missing value where TRUE/FALSE needed
+Calls: SCnorm
+In addition: Warning messages:
+1: In asMethod(object) :
+  sparse->dense coercion: allocating vector of size 19.0 GiB
+2: In nrow(Counts) * ncol(Counts) : NAs produced by integer overflow
+Execution halted
+srun: error: nrnb-cn-08: task 0: Exited with exit code 1

@@ -2,3 +2,5 @@
 Ensembl gene IDs (version 110) for human and mouse orthologs (from Biomart and following https://medium.com/@daimin0514/how-to-convert-human-gene-symbols-to-mouse-gene-symbols-ad52d68e82fd)
 ### regev_lab_cell_cycle_genes.txt
 cell cycle genes defined in Tirosh et al, 2015. It is a list of 97 genes, represented by their gene symbol. The list here is for humans. Original paper (https://www.science.org/doi/10.1126/science.aad0501#abstract) coudl not find list in there so downloaded from the scanpy github (https://github.com/scverse/scanpy_usage/blob/master/180209_cell_cycle/data/regev_lab_cell_cycle_genes.txt)
+### mouse_DNA_damage_response_genes_GO.tsv
+Mouse DDR genes downloaded from https://www.informatics.jax.org/vocab/gene_ontology/GO:0006974 which is where GO refers you (https://current.geneontology.org/products/pages/downloads.html)
