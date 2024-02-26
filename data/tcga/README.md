@@ -1,4 +1,4 @@
-## Data downloading
+## CPTAC genomic Data downloading
 ### Step 1: Data using TCGABiolinks
 Run TCGA_data_downloader.R (Use conda environment `r_go`) to get the desired project and datatypes, populating a `GDCdata` folder with the data. 
 ### Step 2: Metadata/samplesheet
@@ -7,6 +7,11 @@ Select the same samples on the TCGA GDC website. Add them to cart. Go to cart. D
 Run `/dream/source/process_tcgabiolinks.py` (Use conda environment `dream_proj`) with the unduplicated samplesheet, metadata, and path to each project-datatype pair to create data matrices with synchronized sample IDs and such. Outputs to `/dream/data/tcga/processed/CPTAC-3_mutation.parquet` and `/dream/data/tcga/processed/CPTAC-3_expression.parquet` etc.
 ### Step 4: Manual BS
 Do they steps in `/cellar/users/zkoch/dream/notebooks/010224_process_tcga_data.ipynb` to clean the data and form a nice metadata table. This creates `/dream/data/tcga/processed/CPTAC-3_metadata.parquet`.
+### Step 5: Protoemtics
+- Download the pdc client `wget https://pdc-download-clients.s3.amazonaws.com/pdc-client_v1.0.7_Ubuntu_x64.zip`
+- log2 intensity values for kidney cancers were downloaded from `https://proteomic.datacommons.cancer.gov/pdc/analysis/dd0a228f-1fb3-11e9-b7f8-0a80fada099c?StudyName=CPTAC%20CCRCC%20Discovery%20Study%20-%20Phosphoproteome` as cptac_phospo_ccrcc.gct
+- mapping from log2 intensity value aliquot_id to sample_ids was downloaded from `https://proteomic.datacommons.cancer.gov/pdc/study/PDC000128` the biospecimen page 
+
 
 ### Log
 #### CPTAC-3: 
