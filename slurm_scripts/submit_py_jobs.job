@@ -1,0 +1,53 @@
+#!/bin/bash
+#SBATCH --array=0-29%10
+#SBATCH --partition=nrnb-compute
+#SBATCH --mem=128GB
+#SBATCH --time=2:00:00
+#SBATCH --job-name=TS
+#SBATCH --cpus-per-task=32
+#SBATCH --ntasks=1
+eval "$(conda shell.bash hook)"
+conda activate /cellar/users/zkoch/miniconda3/envs/dream_proj_env
+
+echo "Job ID: $SLURM_JOB_ID"
+echo "Job User: $SLURM_JOB_USER"
+echo "Num Cores: $SLURM_JOB_CPUS_PER_NODE"
+echo "Array Job ID: $SLURM_ARRAY_JOB_ID"
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
+######################
+# start at 0 and increase 1000 evert slurm task id
+# start = slurm task id * 1000
+# end = (slurm task id + 1) * 1000
+: 'srun python /cellar/users/zkoch/dream/python_scripts/random_background_dreamVmut_corr.py --start_cell_num $((SLURM_ARRAY_TASK_ID*1000)) --end_cell_num $(((SLURM_ARRAY_TASK_ID+1)*1000)) --regress True
+'
+
+
+######################
+# set cell_num_starts to be in 10k increments between 0 and 2,565,045
+: 'cell_num_starts=()
+for ((i=0; i<=412848; i+=10000)); do
+    cell_num_starts+=($i)
+done
+srun python /cellar/users/zkoch/dream/python_scripts/calc_ssgsea_dream_activity.py ${cell_num_starts[$SLURM_ARRAY_TASK_ID]}
+'
+
+######################
+# SEA-AD random background analysis
+# set cell_num_starts to be in 10k increments between 0 and 2,565,045
+: 'cell_num_starts=()
+for ((i=0; i<=1395601; i+=10000)); do
+    cell_num_starts+=($i)
+done
+srun python /cellar/users/zkoch/dream/python_scripts/random_background_dreamVmut_corr_SEAAD.py --start_cell_num $((SLURM_ARRAY_TASK_ID*10000)) --end_cell_num $(((SLURM_ARRAY_TASK_ID+1)*10000)) --regress True --use-cell-cycle-genes True --n-cores 8
+'
+
+######################
+# download Tabula Sapiens bams
+# 171 files, download in 50 file chunks
+# => 4 jobs
+#srun python /cellar/users/zkoch/dream/python_scripts/download_TS_bams.py $((SLURM_ARRAY_TASK_ID*50)) $(((SLURM_ARRAY_TASK_ID+1)*50))
+
+######################
+# synapse AD random background analysis
+srun python /cellar/users/zkoch/dream/python_scripts/random_background_synapseHarmonization.py --start_sample_num $((SLURM_ARRAY_TASK_ID*100)) --end_sample_num $(((SLURM_ARRAY_TASK_ID+1)*100)) --regress True --use-cell-cycle-genes False --n-cores 32
