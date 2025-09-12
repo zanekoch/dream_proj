@@ -1,0 +1,2 @@
+# mmc2.xls: Table S4. Global Location Analysis of DREAM Subunits from https://www.cell.com/molecular-cell/fulltext/S1097-2765(07)00251-1?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS1097276507002511%3Fshowall%3Dtrue#supplementaryMaterial
+binding of DREAM to promoters, chip-seq
