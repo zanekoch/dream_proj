@@ -1,0 +1,78 @@
+# Core scientific packages - let uv resolve versions
+numpy
+pandas
+scipy
+scikit-learn
+statsmodels
+
+# Bioinformatics
+scanpy
+anndata
+gseapy
+pybiomart
+
+# Visualization
+matplotlib
+seaborn
+plotly
+bokeh
+
+# Data processing
+h5py
+openpyxl
+xlrd
+pyarrow
+lxml
+
+# Statistics and ML
+lifelines
+umap-learn
+pynndescent
+numba
+
+# Jupyter
+jupyter
+jupyterlab
+ipykernel
+ipywidgets
+
+# Utilities
+tqdm
+requests
+pyyaml
+click
+joblib
+cloudpickle
+natsort
+networkx
+dask
+distributed
+
+# Additional pip packages from conda env
+adjusttext
+annoy
+beautifulsoup4
+colorlog
+cython
+deprecated
+dill
+docutils
+einops
+filelock
+igraph
+line-profiler
+pandera
+pydantic
+pylr2
+rnanorm
+scikit-misc
+shapely
+statannotations
+tabulate
+tasklogger
+tensorboard
+venny4py
+xmltodict
+
+# Additional upsetplot package
+upsetplot

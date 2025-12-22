@@ -866,7 +866,89 @@ class ExpressionDataset:
             'case_id'
             ].map(sample_id_count.to_dict())
         self.meta_cols.append('num_samples_this_case')
-    
+
+    def _convert_gene_list(
+        self,
+        gene_ids: list,
+        gene_set_df: pd.DataFrame = None,
+    ) -> list:
+        """Convert a list of human gene IDs to the species of the expression data.
+
+        Parameters:
+            gene_ids: List of human Ensembl gene IDs to convert
+            gene_set_df: Optional DataFrame with gene_name column (used for symbol species)
+
+        Returns:
+            List of gene IDs that exist in self.expression_df.columns
+        """
+        if self.species == "human":
+            # no conversion needed
+            return list(set(gene_ids).intersection(set(self.expression_df.columns)))
+
+        elif self.species == "mouse":
+            if not hasattr(self, 'gene_converter') or self.gene_converter is None:
+                self.gene_converter = pd.read_csv(
+                    "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+                    sep="\t", index_col=0,
+                )
+            # filter to genes that exist in the converter
+            gene_ids_in_converter = [g for g in gene_ids if g in self.gene_converter.index]
+            converted = self.gene_converter.loc[gene_ids_in_converter, "Mouse gene stable ID"]
+            converted = converted.dropna()
+            return list(set(converted).intersection(set(self.expression_df.columns)))
+
+        elif self.species == 'mouse_transcripts':
+            if not hasattr(self, 'gene_converter') or self.gene_converter is None:
+                self.gene_converter = pd.read_csv(
+                    "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+                    sep="\t", index_col=0,
+                )
+            gene_ids_in_converter = [g for g in gene_ids if g in self.gene_converter.index]
+            converted = self.gene_converter.loc[gene_ids_in_converter, "Mouse gene stable ID"]
+            # convert to transcripts
+            dataset = Dataset(name='mmusculus_gene_ensembl', host='http://www.ensembl.org')
+            transcript_to_gene = dataset.query(attributes=['ensembl_transcript_id', 'ensembl_gene_id'])
+            transcripts = transcript_to_gene[
+                transcript_to_gene['Gene stable ID'].isin(converted)
+            ]
+            return list(set(transcripts['Transcript stable ID']).intersection(set(self.expression_df.columns)))
+
+        elif self.species == "rat":
+            if not hasattr(self, 'gene_converter') or self.gene_converter is None:
+                self.gene_converter = pd.read_csv(
+                    "/cellar/users/zkoch/dream/utilities/human_rat_ensembl_genes.txt",
+                    sep="\t", index_col=0,
+                )
+            gene_ids_in_converter = [g for g in gene_ids if g in self.gene_converter.index]
+            converted = self.gene_converter.loc[gene_ids_in_converter, "Rat gene stable ID"]
+            converted = converted.dropna()
+            return list(set(converted).intersection(set(self.expression_df.columns)))
+
+        elif self.species == 'symbol':
+            # use gene symbols from the gene_set_df
+            if gene_set_df is not None and 'gene_name' in gene_set_df.columns:
+                gene_names = gene_set_df['gene_name'].dropna().tolist()
+            else:
+                # if no gene_set_df, try to map through the IDs
+                gene_names = gene_ids
+            return list(set(gene_names).intersection(set(self.expression_df.columns)))
+
+        elif self.species == 'worm':
+            if not hasattr(self, 'gene_converter') or self.gene_converter is None:
+                self.gene_converter = pd.read_csv(
+                    "/cellar/users/zkoch/dream/utilities/human_worm_WB_ensembl_genes.tsv",
+                    sep="\t", index_col=None,
+                )
+                self.gene_converter.dropna(subset=['Human gene stable ID'], inplace=True)
+                self.gene_converter.set_index('Human gene stable ID', inplace=True)
+            gene_ids_in_converter = list(set(gene_ids).intersection(set(self.gene_converter.index)))
+            converted = self.gene_converter.loc[gene_ids_in_converter, "Gene stable ID"]
+            converted = converted.dropna()
+            return list(set(converted).intersection(set(self.expression_df.columns)))
+
+        else:
+            raise NotImplementedError(f"Species {self.species} not implemented for gene conversion")
+
     def convert_genes(self):
         """Convert DREAM genes to the species of the expression data"""
         dream_regulated_genes_names = self.dream_regulated_genes.index
@@ -1077,7 +1159,181 @@ class ExpressionDataset:
         
         self.scale_dream_by_seq_depth(col_name = 'DREAM_normalized_enrichment_score')
         self.scale_dream_by_seq_depth(col_name = 'DREAM_enrichment_score')
-        
+
+    def get_pathway_gene_expression(
+        self,
+        gene_set_path: str,
+        pathway_name: str,
+    ) -> None:
+        """Get expression of genes from a custom gene set file.
+
+        Parameters:
+            gene_set_path: Path to CSV file with gene_stable_id, gene_name columns
+            pathway_name: Name for the pathway (used in column naming)
+
+        Creates columns in self.dream_expression:
+            - {pathway_name}_mean_activity: Mean expression across pathway genes
+            - {pathway_name}_mean_activity_resid: Depth-corrected mean expression
+        """
+        # initialize pathway_genes dict if needed
+        if not hasattr(self, 'pathway_genes'):
+            self.pathway_genes = {}
+
+        # ensure dream_expression exists
+        if not hasattr(self, 'dream_expression') or self.dream_expression is None:
+            raise ValueError("dream_expression not initialized. Call get_dream_gene_expression() first.")
+
+        # read the gene set file
+        gene_set_df = utils.read_gene_set_file(gene_set_path)
+        gene_ids = gene_set_df.index.tolist()
+        print(f"Read {len(gene_ids)} genes from {gene_set_path}")
+
+        # convert genes to expression data species
+        genes_w_expression = self._convert_gene_list(gene_ids, gene_set_df)
+        self.pathway_genes[pathway_name] = genes_w_expression
+        print(f"Found {len(genes_w_expression)} {pathway_name} genes with expression")
+
+        # calculate mean expression from expression_df
+        mean_col = f'{pathway_name}_mean_activity'
+        self.dream_expression[mean_col] = self.expression_df[genes_w_expression].mean(axis=1)
+        self.dream_expression[mean_col] = self.dream_expression[mean_col].astype(float)
+
+        # scale by sequencing depth
+        self._scale_pathway_by_seq_depth(pathway_name, col_name=mean_col)
+
+    def _scale_pathway_by_seq_depth(
+        self,
+        pathway_name: str,
+        col_name: str,
+        eq: str = None
+    ) -> None:
+        """Scale a pathway activity column by sequencing depth.
+
+        Parameters:
+            pathway_name: Name of the pathway (for logging)
+            col_name: Column name to scale in self.dream_expression
+            eq: Equation to use for scaling (default: col ~ total_seq_depth * n_genes_expressed)
+        """
+        if eq is None:
+            eq = f'{col_name} ~ total_seq_depth * n_genes_expressed'
+
+        mut_ols = smf.ols(
+            formula=eq,
+            data=self.dream_expression
+        ).fit()
+
+        resid_col = f'{col_name}_resid'
+        self.dream_expression[resid_col] = mut_ols.resid
+        # invert residuals making highest values low and lowest values high
+        self.dream_expression[resid_col] = -1 * self.dream_expression[resid_col]
+        # then add the min value to make all values positive
+        self.dream_expression[resid_col] = self.dream_expression[resid_col] - min(self.dream_expression[resid_col])
+
+        print(f"Scaled {col_name} by sequence depth and created {resid_col}")
+
+    def pathway_enrichment_ssgsea(
+        self,
+        gene_set_path: str,
+        pathway_name: str,
+    ) -> None:
+        """Run ssGSEA on a custom gene set.
+
+        Parameters:
+            gene_set_path: Path to CSV file with gene_stable_id, gene_name columns
+            pathway_name: Name for the pathway (used in column naming)
+
+        Creates columns in self.dream_expression:
+            - {pathway_name}_NES: Normalized Enrichment Score
+            - {pathway_name}_NES_resid: Depth-corrected NES
+            - {pathway_name}_ES: Raw Enrichment Score
+            - {pathway_name}_ES_resid: Depth-corrected ES
+        """
+        # initialize if needed
+        if not hasattr(self, 'pathway_genes'):
+            self.pathway_genes = {}
+
+        # ensure dream_expression exists
+        if not hasattr(self, 'dream_expression') or self.dream_expression is None:
+            raise ValueError("dream_expression not initialized. Call get_dream_gene_expression() first.")
+
+        # read gene set if not already loaded
+        if pathway_name not in self.pathway_genes:
+            gene_set_df = utils.read_gene_set_file(gene_set_path)
+            gene_ids = gene_set_df.index.tolist()
+            genes_w_expression = self._convert_gene_list(gene_ids, gene_set_df)
+            self.pathway_genes[pathway_name] = genes_w_expression
+            print(f"Found {len(genes_w_expression)} {pathway_name} genes with expression")
+
+        # get genes for this pathway
+        pathway_gene_list = self.pathway_genes[pathway_name]
+        gene_set_dict = {f'{pathway_name}_genes': pathway_gene_list}
+
+        # select non-meta columns for ssgsea
+        expr_df = self.expression_df.loc[:, ~self.expression_df.columns.isin(self.meta_cols)]
+
+        # run ssgsea
+        ssgsea = gseapy.ssgsea(
+            data=expr_df.T,
+            gene_sets=gene_set_dict,
+            outdir=None,
+            no_plot=True,
+            max_size=1000,
+            verbose=True
+        )
+
+        results_df = ssgsea.res2d
+        results_df.set_index('Name', inplace=True)
+        results_df.drop(columns=['Term'], inplace=True)
+
+        # rename columns with pathway name
+        nes_col = f'{pathway_name}_NES'
+        es_col = f'{pathway_name}_ES'
+        results_df.rename(
+            columns={'NES': nes_col, 'ES': es_col},
+            inplace=True
+        )
+        results_df = results_df.astype(float)
+
+        # merge into dream_expression
+        self.dream_expression = self.dream_expression.merge(
+            results_df, left_index=True, right_index=True, how='left'
+        )
+
+        # ensure float type
+        self.dream_expression[nes_col] = self.dream_expression[nes_col].astype(float)
+        self.dream_expression[es_col] = self.dream_expression[es_col].astype(float)
+
+        # scale by sequencing depth
+        self._scale_pathway_by_seq_depth(pathway_name, col_name=nes_col)
+        self._scale_pathway_by_seq_depth(pathway_name, col_name=es_col)
+
+    def calculate_all_pathway_activities(
+        self,
+        pathway_files: dict,
+        calculate_ssgsea: bool = True,
+    ) -> None:
+        """Calculate activity scores for multiple pathways.
+
+        Parameters:
+            pathway_files: Dict mapping pathway names to file paths
+                e.g., {'E2F7': '/path/to/E2F7_targets.csv', 'P53': '/path/to/p53_targets.csv'}
+            calculate_ssgsea: Whether to also calculate ssGSEA scores (default: True)
+        """
+        for pathway_name, file_path in pathway_files.items():
+            print(f"\n--- Processing {pathway_name} ---")
+            # calculate mean expression
+            self.get_pathway_gene_expression(
+                gene_set_path=file_path,
+                pathway_name=pathway_name
+            )
+            # optionally calculate ssGSEA
+            if calculate_ssgsea:
+                self.pathway_enrichment_ssgsea(
+                    gene_set_path=file_path,
+                    pathway_name=pathway_name
+                )
+            print(f"Completed {pathway_name}")
+
     def test_differential_dream_expression(
         self,
         class_col: str,

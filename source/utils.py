@@ -86,6 +86,34 @@ def plot_major_axis_regr(
         upper_bound = (slope + std_err) * x_vals + (intercept + std_intercept)
         axes.fill_between(_fxn_to_apply(fxn_to_apply, x_vals), lower_bound, upper_bound, alpha=0.3, color='black', edgecolor = 'none')"""
     
+def read_gene_set_file(
+    file_path: str,
+    gene_id_col: str = 'gene_stable_id',
+    gene_name_col: str = 'gene_name'
+) -> pd.DataFrame:
+    """Read a gene set file (CSV format with gene_stable_id, gene_name columns).
+
+    Parameters:
+        file_path: Path to CSV file containing gene set
+        gene_id_col: Column name for Ensembl gene IDs (default: 'gene_stable_id')
+        gene_name_col: Column name for gene symbols (default: 'gene_name')
+
+    Returns:
+        DataFrame indexed by gene_stable_id with gene_name column
+    """
+    gene_set = pd.read_csv(file_path, index_col=None)
+    # normalize column names
+    gene_set.columns = [x.lower().replace(" ", "_") for x in gene_set.columns]
+    # ensure expected columns exist
+    if gene_id_col not in gene_set.columns:
+        raise ValueError(f"Column '{gene_id_col}' not found in {file_path}")
+    # drop rows with missing gene IDs
+    gene_set = gene_set.dropna(subset=[gene_id_col])
+    # set index
+    gene_set.set_index(gene_id_col, inplace=True)
+    return gene_set
+
+
 def read_dream_files(
     use_new: bool = False
     ) -> None:

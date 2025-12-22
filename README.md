@@ -141,20 +141,36 @@ Main entry point for data loading. Contains the `DatasetLoader` factory class th
 
 ## Environment Setup
 
-### Conda Environment
-```bash
-# Activate the main project environment
-conda activate dream_proj_env3
+### Using uv (Recommended)
 
-# Environment files available:
-# - environments/dream_proj_env3.yml (latest)
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager. The project environment is located at `dream_proj_env3_uv/`.
+
+```bash
+# Activate the environment
+source dream_proj_env3_uv/bin/activate
+
+# To use in Jupyter notebooks, register the kernel (one-time setup):
+python -m ipykernel install --user --name dream_proj_env3_uv --display-name "Python (dream_proj_env3_uv)"
+
+# Then select "Python (dream_proj_env3_uv)" as the kernel in your notebook
+```
+
+#### Installing uv (if needed)
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+#### Recreating the environment
+```bash
+uv venv dream_proj_env3_uv --python 3.10
+uv pip install -r requirements_uv.txt --python dream_proj_env3_uv/bin/python
 ```
 
 ### Key Dependencies
 - **Python**: pandas, numpy, scipy, matplotlib, seaborn, scanpy, anndata
 - **Bioinformatics**: pybiomart, gseapy, sigprofiler, cosmic-fit
 - **Statistics**: statsmodels, lifelines, scikit-learn
-- **Visualization**: colorcet, forestplot
+- **Visualization**: colorcet, upsetplot
 
 ## Data Architecture
 
