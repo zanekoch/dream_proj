@@ -269,7 +269,13 @@ class ScExpressionDataset:
             List of gene names that exist in self.adata.var_names
         """
         if self.gene_species == "human":
-            # no conversion needed
+            # Try matching gene symbols first (when var_names are symbols, not Ensembl IDs)
+            if gene_set_df is not None and 'gene_name' in gene_set_df.columns:
+                gene_names = gene_set_df['gene_name'].str.upper().dropna().tolist()
+                symbol_matches = list(set(gene_names).intersection(set(self.adata.var_names)))
+                if len(symbol_matches) > 0:
+                    return symbol_matches
+            # Fall back to Ensembl IDs if var_names are Ensembl IDs
             return list(set(gene_ids).intersection(set(self.adata.var_names)))
 
         elif self.gene_species == "mouse":
@@ -461,7 +467,9 @@ class ScExpressionDataset:
             outdir=None,
             no_plot=True,
             verbose=True,
-            threads=threads
+            threads=threads,
+            min_size=1,
+            max_size=5000  # Allow large gene sets like fischer_expanded_dream (971 genes)
         )
 
         results_df = ssgsea.res2d

@@ -7,7 +7,7 @@ statsmodels
 
 # Bioinformatics
 scanpy
-anndata
+anndata==0.10.8
 gseapy
 pybiomart
 
@@ -76,3 +76,6 @@ xmltodict
 
 # Additional upsetplot package
 upsetplot
+
+# Forest plots for meta-analysis visualization
+forestplot
