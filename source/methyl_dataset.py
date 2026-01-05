@@ -1,9 +1,13 @@
 import pandas as pd
+import os
 import utils
 import gseapy
 import statsmodels.formula.api as smf
 from pylr2 import regress2
 import numpy as np
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class MethylationDataset:
     """ Class to represent a methylation dataset """
@@ -47,7 +51,7 @@ class MethylationDataset:
             self.meta_cols = self.metadata_df.columns.to_list()
             # read in species stats 
             self.species_stats = pd.read_excel(
-                '/cellar/users/zkoch/dream/data/mammalian_methylation_consort/li_2024/sciadv.adm7273_tables_s1_to_s11.xlsx',
+                os.path.join(REPO_ROOT, 'data/mammalian_methylation_consort/li_2024/sciadv.adm7273_tables_s1_to_s11.xlsx'),
                 sheet_name='S1. anAge Updated', skiprows=1
                 )
             self.species_stats.rename(columns = {
@@ -75,7 +79,7 @@ class MethylationDataset:
         if need_to_convert_genes:
             if self.species == "mouse":
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+                    os.path.join(REPO_ROOT, "utilities/human_mouse_ensembl_genes.txt.gz"),
                     sep="\t", index_col=0, 
                 )
                 # convert to mouse genes
@@ -86,7 +90,7 @@ class MethylationDataset:
                 print("Converted DREAM genes to mouse genes")
             elif self.species == "rat":
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_rat_ensembl_genes.txt",
+                    os.path.join(REPO_ROOT, "utilities/human_rat_ensembl_genes.txt"),
                     sep="\t", index_col=0, 
                 )
                 # convert to rat genes
@@ -103,7 +107,7 @@ class MethylationDataset:
             elif self.species == 'worm':
                 # convert from WB gene to human gene
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_worm_WB_ensembl_genes.tsv",
+                    os.path.join(REPO_ROOT, "utilities/human_worm_WB_ensembl_genes.tsv"),
                     sep="\t", index_col=None, 
                 )
                 # set Human gene stable ID to index

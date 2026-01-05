@@ -13,12 +13,15 @@ from typing import Union, List
 import statsmodels.formula.api as smf
 import pickle
 
-# my library code 
+# my library code
 from expr_dataset import ExpressionDataset
 from sc_expr_dataset import ScExpressionDataset
 from mutation_dataset import MutationDataset
 from methyl_dataset import MethylationDataset
 import utils
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 """
 To add a new expression dataset
@@ -174,7 +177,7 @@ class DatasetLoader:
         cell_lines : ExpressionDataset
             Expression dataset for cell lines
         """
-        data_dir = '/cellar/users/zkoch/dream/data/petljak_2019'
+        data_dir = os.path.join(REPO_ROOT, 'data/petljak_2019')
         
         # read in mapping of COSMIC id to cell line name
         id_to_cell_line = pd.read_excel(os.path.join(data_dir, 'TableS1E.xlsx'))
@@ -225,7 +228,7 @@ class DatasetLoader:
             ExpressionDataset: An ExpressionDataset object containing the Crosby 2022 data
         """
         # path to dataset
-        fn = "/cellar/users/zkoch/dream/data/crosby_2022/GSE215974_Processed_data_FE1_hydrazine.xlsx"
+        fn = os.path.join(REPO_ROOT, "data/crosby_2022/GSE215974_Processed_data_FE1_hydrazine.xlsx")
         
         # read excel file
         expression_df = pd.read_excel(fn)
@@ -261,7 +264,7 @@ class DatasetLoader:
             ExpressionDataset: An ExpressionDataset object containing the Liu 2021 data
         """
         # path to the dataset
-        fn = "/cellar/users/zkoch/dream/data/liu_2021/GSE161789_raw_counts_and_FPKM_for_RNA-seq.xlsx"
+        fn = os.path.join(REPO_ROOT, "data/liu_2021/GSE161789_raw_counts_and_FPKM_for_RNA-seq.xlsx")
         
         # read the excel file
         expression_df = pd.read_excel(fn)
@@ -296,7 +299,7 @@ class DatasetLoader:
         adata : ScExpressionDataset
             Expression dataset for Tabula Sapiens
         """
-        data_dir = '/cellar/users/zkoch/dream/data/tabula_sapiens'
+        data_dir = os.path.join(REPO_ROOT, 'data/tabula_sapiens')
         adata = sc.read_h5ad(os.path.join(data_dir, 'tabula_sapiens.h5ad'))
 
         # subset to 10x 3'
@@ -342,14 +345,14 @@ class DatasetLoader:
         ts.get_dream_gene_expression()
         # read in ssgsea results
         ssgsea_dream_expression = pd.read_parquet(
-            '/cellar/users/zkoch/dream/data/tabula_sapiens/ssgsea_dream_expression.parquet'
+            os.path.join(REPO_ROOT, 'data/tabula_sapiens/ssgsea_dream_expression.parquet')
             )
         ts.dream_expression.obs = ssgsea_dream_expression
         
         ############# Read in pseudo-bulk mutations ############   
         print("Reading in mutations")
         # find all mutation files
-        mutation_fns = glob.glob('/cellar/users/zkoch/dream/data/tabula_sapiens/output_dir/*/Step4_VariantCalling/*.calling.step2.pass.tsv')
+        mutation_fns = glob.glob(os.path.join(REPO_ROOT, 'data/tabula_sapiens/output_dir/*/Step4_VariantCalling/*.calling.step2.pass.tsv'))
         # read in each file
         mutation_dfs = []
         for fn in mutation_fns:
@@ -384,7 +387,7 @@ class DatasetLoader:
 
         ########## Read in sc genotypes ############
         print("Reading in sc genotypes")
-        sc_genotype_fns = glob.glob('/cellar/users/zkoch/dream/data/tabula_sapiens/output_dir/*/SingleCellAlleles/*single_cell_genotype.tsv')
+        sc_genotype_fns = glob.glob(os.path.join(REPO_ROOT, 'data/tabula_sapiens/output_dir/*/SingleCellAlleles/*single_cell_genotype.tsv'))
         # read in each
         sc_genotype_dfs = []
         for fn in sc_genotype_fns:
@@ -425,7 +428,7 @@ class DatasetLoader:
 
         ############ Read in sc callable sites ################
         print("Reading in sc callable sites (SitesPerCell)")
-        sc_callable_sites_fns = glob.glob('/cellar/users/zkoch/dream/data/tabula_sapiens/output_dir/*/UniqueCellCallableSites/*.SitesPerCell.tsv')
+        sc_callable_sites_fns = glob.glob(os.path.join(REPO_ROOT, 'data/tabula_sapiens/output_dir/*/UniqueCellCallableSites/*.SitesPerCell.tsv'))
         # read in each file
         sc_callable_sites_dfs = []
         for fn in sc_callable_sites_fns:
@@ -451,7 +454,7 @@ class DatasetLoader:
         ########## Read in callable sites ############
         print("Reading in callable sites")
 
-        callable_sites_fns = glob.glob('/cellar/users/zkoch/dream/data/tabula_sapiens/output_dir/*/CellTypeCallableSites/*coverage_cell_count.report.tsv')
+        callable_sites_fns = glob.glob(os.path.join(REPO_ROOT, 'data/tabula_sapiens/output_dir/*/CellTypeCallableSites/*coverage_cell_count.report.tsv'))
         # read in each file
         callable_site_dfs = []
         for fn in callable_sites_fns:
@@ -521,7 +524,7 @@ class DatasetLoader:
         end_cell_num : int
             The number of cells to end at
         """
-        data_dir = '/cellar/users/zkoch/dream/data/SEA-AD/aws_snRNA_seq'
+        data_dir = os.path.join(REPO_ROOT, 'data/SEA-AD/aws_snRNA_seq')
         if read_whole_dataset:
             print("Loading whole dataset")
             adata = sc.read_h5ad(
@@ -573,7 +576,7 @@ class DatasetLoader:
         ############ Read in mutations ############
         print("Reading in mutations")
         # find all mutation files
-        mutation_fns = glob.glob('/cellar/users/zkoch/dream/data/SEA-AD/synapse/bams/dlpfc/output_dir/*/Step4_VariantCalling/*.calling.step2.pass.tsv')
+        mutation_fns = glob.glob(os.path.join(REPO_ROOT, 'data/SEA-AD/synapse/bams/dlpfc/output_dir/*/Step4_VariantCalling/*.calling.step2.pass.tsv'))
         # read in each file
         mutation_dfs = []
         for fn in mutation_fns:
@@ -593,7 +596,7 @@ class DatasetLoader:
         del mutation_dfs
 
         # read in all the manifest files that synapse output, to match sample ids to donor ids
-        manifest_fns = glob.glob('/cellar/users/zkoch/dream/data/SEA-AD/synapse/bams/dlpfc/manifest*')
+        manifest_fns = glob.glob(os.path.join(REPO_ROOT, 'data/SEA-AD/synapse/bams/dlpfc/manifest*'))
         manifest_dfs = []
         for fn in manifest_fns:
             df = pd.read_csv(fn, sep=',')
@@ -618,7 +621,7 @@ class DatasetLoader:
         
         ########## Read in callable sites ############
         print("Reading in callable sites")
-        callable_sites_fns = glob.glob('/cellar/users/zkoch/dream/data/SEA-AD/synapse/bams/dlpfc/output_dir/*/CellTypeCallableSites/*coverage_cell_count.report.tsv')
+        callable_sites_fns = glob.glob(os.path.join(REPO_ROOT, 'data/SEA-AD/synapse/bams/dlpfc/output_dir/*/CellTypeCallableSites/*coverage_cell_count.report.tsv'))
         # read in each file
         callable_site_dfs = []
         for fn in callable_sites_fns:
@@ -650,7 +653,7 @@ class DatasetLoader:
         
         ########## Read in sc genotypes ############
         print("Reading in sc genotypes")
-        sc_genotype_fns = glob.glob('/cellar/users/zkoch/dream/data/SEA-AD/synapse/bams/dlpfc/output_dir/*/SingleCellAlleles/*single_cell_genotype.tsv')
+        sc_genotype_fns = glob.glob(os.path.join(REPO_ROOT, 'data/SEA-AD/synapse/bams/dlpfc/output_dir/*/SingleCellAlleles/*single_cell_genotype.tsv'))
         # read in each
         sc_genotype_dfs = []
         for fn in sc_genotype_fns:
@@ -688,7 +691,7 @@ class DatasetLoader:
         
         ############ Read in sc callable sites ################
         print("Reading in sc callable sites")
-        sc_callable_sites_fns = glob.glob('/cellar/users/zkoch/dream/data/SEA-AD/synapse/bams/dlpfc/output_dir/*/UniqueCellCallableSites/*.SitesPerCell.tsv')
+        sc_callable_sites_fns = glob.glob(os.path.join(REPO_ROOT, 'data/SEA-AD/synapse/bams/dlpfc/output_dir/*/UniqueCellCallableSites/*.SitesPerCell.tsv'))
         # read in each file
         sc_callable_sites_dfs = []
         for fn in sc_callable_sites_fns:
@@ -732,12 +735,12 @@ class DatasetLoader:
         adata : ScExpressionDataset
             Expression dataset for synapse MIT ROSMAP Multiomics
         """
-        """fusions_smart = pd.read_csv("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2_fusions.maxsensitivity_prediction_numbers.meta.counts.tsv", sep="\t", header=0)
-        human_smart_expr_colnames_fn = "/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2.expr_colnames.tsv"
-        human_smart_expr_symbol_rownames_fn = "/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2.expr_symbol_rownames.tsv"
+        """fusions_smart = pd.read_csv(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2_fusions.maxsensitivity_prediction_numbers.meta.counts.tsv"), sep="\t", header=0)
+        human_smart_expr_colnames_fn = os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2.expr_colnames.tsv")
+        human_smart_expr_symbol_rownames_fn = os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2.expr_symbol_rownames.tsv")
         human_smart_expr_colnames = pd.read_csv(human_smart_expr_colnames_fn, sep="\t", header=None)
         human_smart_expr_symbol_rownames = pd.read_csv(human_smart_expr_symbol_rownames_fn, sep="\t", header=None)
-        expr_smart = sc.read_mtx("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2.expr.mtx").T
+        expr_smart = sc.read_mtx(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_smart-seq2.expr.mtx")).T
 
         # set gene names
         expr_smart.var = human_smart_expr_symbol_rownames#.values
@@ -764,7 +767,7 @@ class DatasetLoader:
         expr_smart.obs.rename(columns = {'count':'fusion_count'}, inplace = True)
 
         # map mit ids to rosmap ids
-        mit_to_rosmap_mapping = pd.read_csv("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/MIT_ROSMAP_Multiomics_individual_metadata.csv", sep=",", header=0)
+        mit_to_rosmap_mapping = pd.read_csv(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/MIT_ROSMAP_Multiomics_individual_metadata.csv"), sep=",", header=0)
         mit_to_rosmap_mapping.set_index("subject", inplace=True)
         # drop duplicate index 
         mit_to_rosmap_mapping = mit_to_rosmap_mapping[~mit_to_rosmap_mapping.index.duplicated(keep='first')]
@@ -772,7 +775,7 @@ class DatasetLoader:
         expr_smart.obs['individualID'] = expr_smart.obs['subject'].map(mit_to_rosmap_mapping['individualID'])
 
         # merge with rosmap metadata
-        harmonized_metadata = pd.read_csv("/cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/RNAseq_Harmonization_ROSMAP_combined_metadata.csv")
+        harmonized_metadata = pd.read_csv(os.path.join(REPO_ROOT, "data/synapse_rna_seq_harmonization/RNAseq_Harmonization_ROSMAP_combined_metadata.csv"))
         # TODO: might be losing longitudinal data here
         harmonized_metadata.drop_duplicates(subset="individualID", keep="first", inplace=True)
         expr_smart.obs = expr_smart.obs.merge(
@@ -792,7 +795,7 @@ class DatasetLoader:
         # sc_rosmap_smart.get_dream_gene_expression()
         # sc_rosmap_smart.dream_enrichment_ssgsea()
         """
-        with open("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/sc_rosmap_smart_preprocessed_ssgsea.pkl", "rb") as f:
+        with open(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/sc_rosmap_smart_preprocessed_ssgsea.pkl"), "rb") as f:
             synapse = pickle.load(f)
         synapse.dream_expression.obs['age_first_ad_dx'] = synapse.dream_expression.obs['age_first_ad_dx'].replace('90+',90).astype(float)
         synapse.dream_expression.obs['age_death'] = synapse.dream_expression.obs['age_death'].replace('90+',90).astype(float)
@@ -807,8 +810,8 @@ class DatasetLoader:
         """
         # read in 10x expression and fusions data
         """print("reading in 10x expression and fusions data, takes ~10 minutes")
-        fusions_10x = pd.read_csv("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_10x.aggregated.fusion_predictions.processed_counts.tsv", sep="\t", header=0)
-        expr_10x = sc.read_h5ad("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/mathys_2023/PFC427_raw_data.h5ad")
+        fusions_10x = pd.read_csv(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/dileep_2023/human_10x.aggregated.fusion_predictions.processed_counts.tsv"), sep="\t", header=0)
+        expr_10x = sc.read_h5ad(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/mathys_2023/PFC427_raw_data.h5ad"))
         
         # make barcodes match
         expr_10x.obs['num'] = expr_10x.obs['bc'].str.split('-').str[-1]
@@ -822,14 +825,14 @@ class DatasetLoader:
         expr_10x.obs.rename(columns={"count": "fusion_count"}, inplace=True)
 
         # map mit ids to rosmap ids
-        mit_to_rosmap_mapping = pd.read_csv("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/MIT_ROSMAP_Multiomics_individual_metadata.csv", sep=",", header=0)
+        mit_to_rosmap_mapping = pd.read_csv(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/MIT_ROSMAP_Multiomics_individual_metadata.csv"), sep=",", header=0)
         mit_to_rosmap_mapping.set_index("subject", inplace=True)
         # drop duplicate index 
         mit_to_rosmap_mapping = mit_to_rosmap_mapping[~mit_to_rosmap_mapping.index.duplicated(keep='first')]
         expr_10x.obs['individualID'] = expr_10x.obs['subject'].map(mit_to_rosmap_mapping['individualID'])
 
         # merge with rosmap metadata
-        harmonized_metadata = pd.read_csv("/cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/RNAseq_Harmonization_ROSMAP_combined_metadata.csv")
+        harmonized_metadata = pd.read_csv(os.path.join(REPO_ROOT, "data/synapse_rna_seq_harmonization/RNAseq_Harmonization_ROSMAP_combined_metadata.csv"))
         # drop rows with duplicate individualID
         # TODO: might be losing longitudinal data here
         harmonized_metadata.drop_duplicates(subset="individualID", keep="first", inplace=True)
@@ -843,7 +846,7 @@ class DatasetLoader:
             dataset="synapse_MIT_ROSMAP_Multiomics_10x"
             )"""
         print("loading synapse_MIT_ROSMAP_Multiomics_10x from pickle")
-        with open("/cellar/users/zkoch/dream/data/synapse_MIT_ROSMAP_Multiomics/sc_rosmap_preprocessed_ssgsea.pkl", "rb") as f:
+        with open(os.path.join(REPO_ROOT, "data/synapse_MIT_ROSMAP_Multiomics/sc_rosmap_preprocessed_ssgsea.pkl"), "rb") as f:
             synapse = pickle.load(f)
         # find all columns that end in _x and drop them
         to_drop = synapse.dream_expression.obs.columns[synapse.dream_expression.obs.columns.str.endswith('_x')]
@@ -863,7 +866,7 @@ class DatasetLoader:
         expression : ExpressionDataset
             Expression dataset for synapse rna seq harmonization
         """
-        data_dir = '/cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization'
+        data_dir = os.path.join(REPO_ROOT, 'data/synapse_rna_seq_harmonization')
         expr_fns = glob.glob(os.path.join(data_dir, 'ROSMAP_*_gene_all_counts_matrix_clean.txt'))
         # read in data
         expr_datasets = []
@@ -890,7 +893,7 @@ class DatasetLoader:
         expression : ExpressionDataset
             Expression dataset for Paine 2024
         """
-        data_dir = "/cellar/users/zkoch/dream/data/paine_2024"
+        data_dir = os.path.join(REPO_ROOT, "data/paine_2024")
         fn = "GSE231853_family.soft"
         # read metadata from soft file
         metadata_df = self.read_soft(
@@ -918,7 +921,7 @@ class DatasetLoader:
         expression : ExpressionDataset
             Expression dataset for Lu 2022
         """
-        data_dir = "/cellar/users/zkoch/dream/data/lu_2022"
+        data_dir = os.path.join(REPO_ROOT, "data/lu_2022")
         # match files ending in .reads
         fns = glob.glob(os.path.join(data_dir, "*.reads"))
         expr_dfs = []
@@ -998,7 +1001,7 @@ class DatasetLoader:
         """
         # Read the processed omics data
         all_data = pd.read_csv(
-            "/cellar/users/zkoch/dream/data/williams_2022/aData_S1_AllOmicsandPhenotypeData.csv",
+            os.path.join(REPO_ROOT, "data/williams_2022/aData_S1_AllOmicsandPhenotypeData.csv"),
             header=0, index_col = None
             )
         # for phenotype and metadata, 3rd column is index
@@ -1051,7 +1054,7 @@ class DatasetLoader:
         expression : ExpressionDataset
             Expression dataset for Lu 2014
         """
-        data_dir = "/cellar/users/zkoch/dream/data/lu_2014"
+        data_dir = os.path.join(REPO_ROOT, "data/lu_2014")
         fn = "GSE53890_family.soft"
         # read metadata from soft file
         metadata_df = self.read_soft(
@@ -1077,7 +1080,7 @@ class DatasetLoader:
         adata : ScExpressionDataset
             Expression dataset for AD
         """
-        fn = "/cellar/users/zkoch/dream/data/hashimoto_2019/hashimoto_2019.h5ad"
+        fn = os.path.join(REPO_ROOT, "data/hashimoto_2019/hashimoto_2019.h5ad")
         adata = sc.read_h5ad(fn)
         hashimoto = ScExpressionDataset(
             adata=adata,
@@ -1092,7 +1095,7 @@ class DatasetLoader:
         adata : ScExpressionDataset
             Expression dataset for AD
         """
-        fn = "/cellar/users/zkoch/dream/data/otero-garcia_2022/70170717-45c4-4891-9b14-fb795ecc3d94.h5ad"
+        fn = os.path.join(REPO_ROOT, "data/otero-garcia_2022/70170717-45c4-4891-9b14-fb795ecc3d94.h5ad")
         """adata = sc.read_h5ad(fn)
         otero_garcia = ScExpressionDataset(
             adata=adata,
@@ -1100,7 +1103,7 @@ class DatasetLoader:
             dataset="otero-garcia_2022"
             )"""
         # pickle the object and save it
-        with open("/cellar/users/zkoch/dream/data/otero-garcia_2022/otero_garcia_preproc_w_ssgsea.pkl", "rb") as f:
+        with open(os.path.join(REPO_ROOT, "data/otero-garcia_2022/otero_garcia_preproc_w_ssgsea.pkl"), "rb") as f:
             otero_garcia = pickle.load(f)
         return otero_garcia
       
@@ -1110,7 +1113,7 @@ class DatasetLoader:
         methylation : MethylationDataset
             Methylation dataset for mammalian methylation consortium
         """
-        data_dir = "/cellar/users/zkoch/dream/data/mammalian_methylation_consort/"
+        data_dir = os.path.join(REPO_ROOT, "data/mammalian_methylation_consort/")
         
         # read in cpg manifest
         manifest = pd.read_csv(
@@ -1159,7 +1162,7 @@ class DatasetLoader:
         nascent_mice : ExpressionDataset
             Expression dataset for nascent rna-seq
         """ 
-        data_dir = "/cellar/users/zkoch/dream/data/gyenis_2023"
+        data_dir = os.path.join(REPO_ROOT, "data/gyenis_2023")
         eu_seq_fn = "Eu_20bins.xls"
         eu_seq = pd.read_excel(os.path.join(data_dir, eu_seq_fn), sheet_name=kws['strand'])
         mice = ExpressionDataset(
@@ -1176,7 +1179,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        rna_dir = "/cellar/users/zkoch/dream/data/motrpac_2024/transcriptomics/results"
+        rna_dir = os.path.join(REPO_ROOT, "data/motrpac_2024/transcriptomics/results")
         rna_fns = glob.glob(os.path.join(rna_dir, "t*","transcript-rna-seq","*count.txt"))
         # read in each
         rna_dfs = []
@@ -1204,7 +1207,7 @@ class DatasetLoader:
         treated_cells : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/uxa_2019"
+        dataset_path = os.path.join(REPO_ROOT, "data/uxa_2019")
         treated_cells_fn = "supp_table_s2.xlsx"
         if not self.load_expression:
             raise ValueError("load_expression must be True to load Uxa 2019")
@@ -1230,7 +1233,7 @@ class DatasetLoader:
         treated_cells : ExpressionDataset
             Expression dataset for treated cells
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/bujarrabal_dueso"
+        dataset_path = os.path.join(REPO_ROOT, "data/bujarrabal_dueso")
         treated_cells_fn = "GSE152235_FPKM_lin-52_worms.csv.gz"
         if not self.load_expression:
             raise ValueError("load_expression must be True to load Bujarrabal Dueso 2023")
@@ -1256,7 +1259,7 @@ class DatasetLoader:
         treated_cells : ExpressionDataset
             Expression dataset for treated cells
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/bujarrabal_dueso"
+        dataset_path = os.path.join(REPO_ROOT, "data/bujarrabal_dueso")
         treated_cells_fn = "GSE168401_Readcounts_Harmine_INDY.csv.gz"
         if not self.load_expression:
             raise ValueError("load_expression must be True to load Bujarrabal Dueso 2023")
@@ -1282,7 +1285,7 @@ class DatasetLoader:
         expr_dataset : ExpressionDataset
             Expression dataset for mice who also had SSB and AP measured
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/cao_et_al_2024"
+        dataset_path = os.path.join(REPO_ROOT, "data/cao_et_al_2024")
         cao_expr = pd.read_csv(
             os.path.join(dataset_path, "GSE190955_merge.71samples.TPM.genes.txt.gz"),
             sep = "\t", index_col = 0, encoding_errors='replace', low_memory=False
@@ -1297,7 +1300,7 @@ class DatasetLoader:
         
         # first metadata
         cao_metadata = pd.read_csv(
-            "/cellar/users/zkoch/dream/data/cao_et_al_2024/GSE190955-GPL24247_series_matrix.txt.gz",
+            os.path.join(REPO_ROOT, "data/cao_et_al_2024/GSE190955-GPL24247_series_matrix.txt.gz"),
             index_col=0, sep = "\t",
             skiprows=36, header=None
             )
@@ -1306,7 +1309,7 @@ class DatasetLoader:
         cao_metadata.columns = ['sample_title', 'sample_geo_accession', 'tissue', 'age', 'dna/rna', 'protocol']
         # 24m metadata
         cao_metadata24 = pd.read_csv(
-            "/cellar/users/zkoch/dream/data/cao_et_al_2024/GSE239751_series_matrix.txt.gz",
+            os.path.join(REPO_ROOT, "data/cao_et_al_2024/GSE239751_series_matrix.txt.gz"),
             index_col=0, sep = "\t",
             skiprows=36, header=None
             )
@@ -1333,7 +1336,7 @@ class DatasetLoader:
         across_species : ExpressionDataset
             Expression dataset for across species
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/liu_2023"
+        dataset_path = os.path.join(REPO_ROOT, "data/liu_2023")
         liu_expr = pd.read_csv(
             os.path.join(dataset_path, "bc_rpkm_tmm_log2_data.tsv"),
             #os.path.join(dataset_path, "rawdata.tsv"),
@@ -1358,12 +1361,12 @@ class DatasetLoader:
         across_species : ScExpressionDataset
             ScExpression dataset for across species
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/cross_species/nebulas_sc/gsapub/ftp/pub/gen"
+        dataset_path = os.path.join(REPO_ROOT, "data/cross_species/nebulas_sc/gsapub/ftp/pub/gen")
         # within dataset_path there are numerous subdirectories
         species_dirs = glob.glob(os.path.join(dataset_path, "*"))
         try:
             # read from h5ad
-            processed_fn = "/cellar/users/zkoch/dream/data/cross_species/nebulas_sc/all_species_processed_w_ssgsea.h5ad"
+            processed_fn = os.path.join(REPO_ROOT, "data/cross_species/nebulas_sc/all_species_processed_w_ssgsea.h5ad")
             adata = sc.read_h5ad(processed_fn)
         except:
             # iterate across species dirs, getting the barcodes, features, and matrix
@@ -1493,7 +1496,7 @@ class DatasetLoader:
         across_species : ExpressionDataset
             Expression dataset for across species
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/cross_species/nebulas/gsapub/ftp/pub/gen"
+        dataset_path = os.path.join(REPO_ROOT, "data/cross_species/nebulas/gsapub/ftp/pub/gen")
         # within dataset_path there are numerous subdirectories
         species_dirs = glob.glob(os.path.join(dataset_path, "*"))
         # get metadata and expression for each species
@@ -1545,7 +1548,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/pearson_2008"
+        dataset_path = os.path.join(REPO_ROOT, "data/pearson_2008")
         treated_mice_fn = "GSE11845_series_matrix.txt"
         treated_mice_metadata_fn = "GSE11845_family.soft"
         if not self.load_expression:
@@ -1573,7 +1576,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/barger_2008"
+        dataset_path = os.path.join(REPO_ROOT, "data/barger_2008")
         treated_mice_fn = "GSE11291_expression.csv" 
         treated_mice_metadata_fn = "GSE11291_family.soft"
         if not self.load_expression:
@@ -1602,7 +1605,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/aon_2020"
+        dataset_path = os.path.join(REPO_ROOT, "data/aon_2020")
         treated_mice_fn = "GSE124294_expression.csv"
         treated_mice_metadata_fn = "GSE124294_family.soft"
         if not self.load_expression:
@@ -1637,7 +1640,7 @@ class DatasetLoader:
         mutation : MutationDataset
             Mutation dataset for GTEx
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/gtex"
+        dataset_path = os.path.join(REPO_ROOT, "data/gtex")
         expression_fn = "gtex_expr_reads.parquet"
         metadata_fn = "gtex_metadata.parquet"
         # metadata, identifiers are SUBJID and SAMPID
@@ -1680,7 +1683,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/eisenberg_2016"
+        dataset_path = os.path.join(REPO_ROOT, "data/eisenberg_2016")
         treated_mice_fn = "GSE86882_expression.csv"
         treated_mice_metadata_fn = "GSE86882_family.soft"
         if not self.load_expression:
@@ -1708,7 +1711,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/neff_2013"
+        dataset_path = os.path.join(REPO_ROOT, "data/neff_2013")
         treated_mice_fn = "GSE41018_expression.csv"
         treated_mice_metadata_fn = "GSE41018_family.soft"
         if not self.load_expression:
@@ -1736,7 +1739,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/zhang_2023"
+        dataset_path = os.path.join(REPO_ROOT, "data/zhang_2023")
         treated_mice_fn = "GSE234563_Matrix.txt"
         treated_mice_metadata_fn = "GSE234563_family.soft"
         if not self.load_expression:
@@ -1764,7 +1767,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/mercken_2014"
+        dataset_path = os.path.join(REPO_ROOT, "data/mercken_2014")
         treated_mice_fn = "GSE49000_expression.csv"
         treated_mice_metadata_fn = "GSE49000_family.soft"
         if not self.load_expression:
@@ -1792,7 +1795,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/yu_2012"
+        dataset_path = os.path.join(REPO_ROOT, "data/yu_2012")
         treated_mice_fn = "GSE39313_expression.csv"
         treated_mice_metadata_fn = "GSE39313_family.soft"
         if not self.load_expression:
@@ -1821,7 +1824,7 @@ class DatasetLoader:
             Expression dataset for treated mice
         """
         # paths
-        dataset_path = "/cellar/users/zkoch/dream/data/fok_cr_2014"
+        dataset_path = os.path.join(REPO_ROOT, "data/fok_cr_2014")
         treated_mice_fn = "GSE40977_expression.csv"
         treated_mice_metadata_fn = "GSE40977_family.soft"
 
@@ -1851,7 +1854,7 @@ class DatasetLoader:
             Expression dataset for treated mice
         """
         # paths
-        dataset_path = "/cellar/users/zkoch/dream/data/fok_2014"
+        dataset_path = os.path.join(REPO_ROOT, "data/fok_2014")
         treated_mice_fn2 = "GSE48333_expression.csv"
         treated_mice_metadata_fn2 = "GSE48333_family.soft"
 
@@ -1881,7 +1884,7 @@ class DatasetLoader:
             Expression dataset for treated mice
         """
         # paths
-        dataset_path = "/cellar/users/zkoch/dream/data/fok_2014"
+        dataset_path = os.path.join(REPO_ROOT, "data/fok_2014")
         treated_mice_fn1 = "GSE48331_expression.csv"
         treated_mice_metadata_fn1 = "GSE48331_family.soft"
 
@@ -1910,7 +1913,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/zhou_2012"
+        dataset_path = os.path.join(REPO_ROOT, "data/zhou_2012")
         
         treated_mice_fn1 = "GSE36838_expression.csv" # 18 mice
         treated_mice_metadata_fn1 = "GSE36838_family.soft"
@@ -1960,7 +1963,7 @@ class DatasetLoader:
         """
         from glob import glob
         # directory filled with barcodes.tsv.gz, genes.tsv.gz, and matrix.mtx.gz files
-        data_dir = "/cellar/users/zkoch/dream/data/ma_sc_rat_CR"
+        data_dir = os.path.join(REPO_ROOT, "data/ma_sc_rat_CR")
         adata_fn = 'all_tissues_with_ssgsea.h5ad'
         metadata_fn = 'GSE137869_family.soft'
         adata = sc.read_h5ad(os.path.join(data_dir, adata_fn))
@@ -1986,7 +1989,7 @@ class DatasetLoader:
         adata : ScExpressionDataset
             Expression dataset for parabiosis
         """
-        fn = "/cellar/users/zkoch/dream/data/palovics_parabiosis/all_tissues.h5ad"
+        fn = os.path.join(REPO_ROOT, "data/palovics_parabiosis/all_tissues.h5ad")
         adata = sc.read_h5ad(fn)
         palovics_parabiosis = ScExpressionDataset(
             adata=adata,
@@ -2001,7 +2004,7 @@ class DatasetLoader:
         facs : ScExpressionDataset
             SCExpression dataset for FACS
         """
-        """tms_data_dir = "/cellar/users/zkoch/dream/data/tabula_muris_senis"
+        """tms_data_dir = os.path.join(REPO_ROOT, "data/tabula_muris_senis")
         # already has DREAM_normalized_enrichment_score calculated
         facs_fn = "tabula-muris-senis-zane-processed-facs_with_mutation_counts_ssgsea.h5ad"
         expr_counts_for_mutation_fn = "adata_with_ercc_genecode_counts_for_gatk_with_metadata.h5ad"
@@ -2040,7 +2043,7 @@ class DatasetLoader:
         tms.dream_expression.obs[mut_col] = tms.adata.obs[mut_col].values
         """
         # the above is saved into this
-        with open('/cellar/users/zkoch/dream/data/tabula_muris_senis/tms_old_geneset.pkl', 'rb') as f:
+        with open(os.path.join(REPO_ROOT, 'data/tabula_muris_senis/tms_old_geneset.pkl'), 'rb') as f:
             tms = pickle.load(f)
         return tms
 
@@ -2051,7 +2054,7 @@ class DatasetLoader:
             Expression dataset for treated mice
         """
         # paths
-        dataset_path = "/cellar/users/zkoch/dream/data/martin_montalvo"
+        dataset_path = os.path.join(REPO_ROOT, "data/martin_montalvo")
         treated_mice_fn = "GSE40936_expression.soft"
         treated_mice_metadata_fn = "GSE40936_family.soft"
 
@@ -2080,7 +2083,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/boutant_nestle"
+        dataset_path = os.path.join(REPO_ROOT, "data/boutant_nestle")
         treated_mice_fn = "GSE70857_non-normalized.txt"
         treated_mice_metadata_fn = "GSE70857_family.soft"
         if not self.load_expression:
@@ -2109,7 +2112,7 @@ class DatasetLoader:
         treated_mice : ExpressionDataset
             Expression dataset for treated mice
         """
-        dataset_path = "/cellar/users/zkoch/dream/data/tyshkovskiy"
+        dataset_path = os.path.join(REPO_ROOT, "data/tyshkovskiy")
         treated_mice_fn = "GSE131754_Interventions_assigned_reads.txt.gz"
         treated_mice_metadata_fn = "GSE131754_family.soft"
         if not self.load_expression:
@@ -2141,7 +2144,7 @@ class DatasetLoader:
         """
         print("WARNING: not loading treated_mice")
         # paths
-        dataset_path = "/cellar/users/zkoch/dream/data/msalt"
+        dataset_path = os.path.join(REPO_ROOT, "data/msalt")
         across_species_fn = "across_species.csv"
         across_species_metadata_fn = "across_species_meta.soft"
         treated_mice_fn = "treated_mice.csv"
@@ -2185,7 +2188,7 @@ class DatasetLoader:
         A list of a subset of ExpressionDataset, MutationDataset, MethylationDataset
         """
         # find the files for this dataset
-        processed_data_dir = "/cellar/users/zkoch/dream/data/tcga/processed_data"
+        processed_data_dir = os.path.join(REPO_ROOT, "data/tcga/processed_data")
         dataset_files = glob.glob(os.path.join(processed_data_dir, self.dataset_name +  "*"))
         # initialize empty fns
         metadata_fn, expression_fn, mutation_fn, methylation_dir, methylation_fn = "","","","",""

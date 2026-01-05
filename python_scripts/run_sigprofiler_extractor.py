@@ -1,3 +1,7 @@
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 #!/usr/bin/env python
 """
 SigProfilerExtractor analysis for UDSeq mice mutation data
@@ -62,7 +66,7 @@ def main():
     # Define matrix paths and output names
     """
     # not ffpe corrected mutations
-    base_path = "/cellar/users/zkoch/dream/data/alexandrov_collab_2025/dupcaller_output/vcfs/combined_vcfs/output"
+    base_path = os.path.join(REPO_ROOT, "data/alexandrov_collab_2025/dupcaller_output/vcfs/combined_vcfs/output")
     matrices = [
         {
             "path": f"{base_path}/SBS/mouse_udseq.SBS96.all",
@@ -82,7 +86,7 @@ def main():
     ]"""
     
     # ffpe corrected mutations
-    base_path = "/cellar/users/zkoch/dream/data/alexandrov_collab_2025/FFPEsig/FFPEsig_OUTPUT/"
+    base_path = os.path.join(REPO_ROOT, "data/alexandrov_collab_2025/FFPEsig/FFPEsig_OUTPUT/")
     matrices = [
         {
             "path": f"{base_path}/corrected_sbs_df_for_sigprofiler.csv",

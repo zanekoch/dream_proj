@@ -1,3 +1,7 @@
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 #!/usr/bin/env python3
 """
 Script to run SigProfilerAssignment cosmic_fit with custom FFPE + COSMIC signatures
@@ -9,11 +13,11 @@ from SigProfilerAssignment import Analyzer as Analyze
 
 def main():
     # Input files
-    signature_database = "/cellar/users/zkoch/dream/data/alexandrov_collab_2025/output_SigProfilerAssignment/cosmic_and_ffpe_signatures_with_SBS87.tsv"
-    input_matrix = "/cellar/users/zkoch/dream/data/alexandrov_collab_2025/dupcaller_output/vcfs/mouse_udseq.SBS96.all"
+    signature_database = os.path.join(REPO_ROOT, "data/alexandrov_collab_2025/output_SigProfilerAssignment/cosmic_and_ffpe_signatures_with_SBS87.tsv")
+    input_matrix = os.path.join(REPO_ROOT, "data/alexandrov_collab_2025/dupcaller_output/vcfs/mouse_udseq.SBS96.all")
     
     # Output directory
-    output_dir = "/cellar/users/zkoch/dream/data/alexandrov_collab_2025/output_SigProfilerAssignment/cosmic_fit_results_only_extracted87"
+    output_dir = os.path.join(REPO_ROOT, "data/alexandrov_collab_2025/output_SigProfilerAssignment/cosmic_fit_results_only_extracted87")
     
     # Check if input files exist
     if not os.path.exists(signature_database):

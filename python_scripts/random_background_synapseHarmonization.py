@@ -1,3 +1,7 @@
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # use cellXgene2 conda env
 import pandas as pd
 import scanpy as sc 
@@ -11,9 +15,9 @@ import sys
 import argparse
 import pickle
 # add source directory to path
-source_path = "/cellar/users/zkoch/dream"#os.path.abspath(os.path.join('..'))
-if source_path not in sys.path:
-    sys.path.append(os.path.join(source_path, 'source'))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))#os.path.abspath(os.path.join('..'))
+if REPO_ROOT not in sys.path:
+    sys.path.append(os.path.join(REPO_ROOT, 'source'))
 # read source files
 import read_data
 
@@ -147,7 +151,7 @@ def main():
     choose_from_background = []
     if use_cell_cycle_genes == 'True':
         cell_cycle_genes = pd.read_csv(
-            "/cellar/users/zkoch/dream/utilities/cell_cycle_genesets/cell_cycle_genes_no_dream_ensemblID.txt",
+            os.path.join(REPO_ROOT, "utilities/cell_cycle_genesets/cell_cycle_genes_no_dream_ensemblID.txt"),
             header=None
             )[0].values.tolist()
         choose_from_background = cell_cycle_genes
@@ -168,10 +172,10 @@ def main():
     
     # save to parquet
     if use_cell_cycle_genes == 'True':
-        out_dir = f'/cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/cell_cycle_random_background/'
+        out_dir = os.path.join(REPO_ROOT, f'data/synapse_rna_seq_harmonization/cell_cycle_random_background/')
         
     else:
-        out_dir = f'/cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/random_background/'
+        out_dir = os.path.join(REPO_ROOT, f'data/synapse_rna_seq_harmonization/random_background/')
     
     if regress:
         background_df.to_parquet(

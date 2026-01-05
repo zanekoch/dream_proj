@@ -1,3 +1,7 @@
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # use dream_proj_env conda environment
 import pandas as pd
 import numpy as np
@@ -16,9 +20,9 @@ import statsmodels.formula.api as smf
 import colorcet as cc
 import psynlig
 
-source_path = "/cellar/users/zkoch/dream"
-if source_path not in sys.path:
-    sys.path.append(os.path.join(source_path, 'source'))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if REPO_ROOT not in sys.path:
+    sys.path.append(os.path.join(REPO_ROOT, 'source'))
 # read source files
 import read_data
 from expr_dataset import ExpressionDataset
@@ -38,5 +42,5 @@ ts.get_dream_gene_expression()
 ts.dream_enrichment_ssgsea()
 # save sc_rosmap to pickle 
 import pickle
-with open(f"/cellar/users/zkoch/dream/data/tabula_sapiens/ssgsea/sc_tabula_sapiens_preprocessed_ssgsea_cellnumstart{cell_num_start}.pkl", "wb") as f:
+with open(os.path.join(REPO_ROOT, f'data/tabula_sapiens/ssgsea/sc_tabula_sapiens_preprocessed_ssgsea_cellnumstart{cell_num_start}.pkl'), "wb") as f:
     pickle.dump(ts, f)

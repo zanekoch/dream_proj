@@ -1,4 +1,5 @@
-from pylr2 import regress2 
+from pylr2 import regress2
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,6 +8,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import pearsonr, spearmanr
 import anndata
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 """def plot_exponential(mean_df, axes, color, treatment_col, x_col):
     # fit negative exponential using lmfit
@@ -129,7 +133,7 @@ def read_dream_files(
         # index 'Gene name'
         # columns: 'ensembl_id', 'hgnc_id', 'uniprotkb
         dream_regulated_genes = pd.read_parquet(
-            '/cellar/users/zkoch/dream/data/bujarrabal_dueso/570_DREAM_revisited_list_processed.parquet'
+            os.path.join(REPO_ROOT, 'data/bujarrabal_dueso/570_DREAM_revisited_list_processed.parquet')
             )
         # replace spaces with underscores and make lowercase
         dream_regulated_genes.columns = [
@@ -140,7 +144,7 @@ def read_dream_files(
         # index 'Gene name'
         # columns: 'gene_stable_id', 'dna_repair_genes', 'harmine_dna_repair_up', 'indy_dna_repair_up'
         dream_regulated_genes = pd.read_csv(
-            "/cellar/users/zkoch/dream/data/bujarrabal_dueso/tableS12_dream_promoter_binding.csv", index_col=None
+            os.path.join(REPO_ROOT, "data/bujarrabal_dueso/tableS12_dream_promoter_binding.csv"), index_col=None
             )
         # replace spaces with underscores and make lowercase
         dream_regulated_genes.columns = [

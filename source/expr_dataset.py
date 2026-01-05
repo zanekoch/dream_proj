@@ -1,5 +1,5 @@
 import pandas as pd
-import scanpy as sc 
+import scanpy as sc
 from pybiomart import Dataset
 import statsmodels.formula.api as smf
 import gseapy
@@ -7,6 +7,9 @@ import numpy as np
 import glob
 import os
 import utils
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class ExpressionDataset:
     """ Class to represent an expression dataset """
@@ -435,7 +438,7 @@ class ExpressionDataset:
         elif self.dataset == 'liu_2023':
             # read in lifehistory
             self.lifehistory_df = pd.read_excel(
-                "/cellar/users/zkoch/dream/data/liu_2023/life_history_traits.xlsx",
+                os.path.join(REPO_ROOT, "data/liu_2023/life_history_traits.xlsx"),
                 skiprows = 2
                 )
             self.lifehistory_df.columns = self.lifehistory_df.columns[:8].to_list() + ['AW/g'] + self.lifehistory_df.columns[9:].to_list()
@@ -460,13 +463,13 @@ class ExpressionDataset:
             #self.meta_cols.remove('Scientific_name_y')
         elif self.dataset == 'cao_2024':
             # read lesions
-            """lesion_df = pd.read_csv("/cellar/users/zkoch/dream/data/cao_et_al_2024/lesion_counts_all.txt", sep="\t", header=None)"""
+            """lesion_df = pd.read_csv(os.path.join(REPO_ROOT, "data/cao_et_al_2024/lesion_counts_all.txt"), sep="\t", header=None)"""
             """lesion_df = pd.read_csv(
-                "/cellar/users/zkoch/dream/data/cao_et_al_2024/lesion_count_greater_than_one_support.txt",
+                os.path.join(REPO_ROOT, "data/cao_et_al_2024/lesion_count_greater_than_one_support.txt"),
                 sep="\t", header=None
                 )"""
             lesion_df = pd.read_csv(
-                "/cellar/users/zkoch/dream/data/cao_et_al_2024/lesion_count_greater_than_5_support.txt",
+                os.path.join(REPO_ROOT, "data/cao_et_al_2024/lesion_count_greater_than_5_support.txt"),
                 sep="\t", header=None
                 )
             # make every odd numbered row its own column and keep even numbered rows as 
@@ -605,7 +608,7 @@ class ExpressionDataset:
             self.meta_cols = self.metadata_df.columns.to_list()
         elif self.dataset == 'uxa_2019':
             # also read in chip binding data
-            uxa_df = pd.read_excel("/cellar/users/zkoch/dream/data/uxa_2019/supp_table_s2.xlsx", sheet_name = None)
+            uxa_df = pd.read_excel(os.path.join(REPO_ROOT, "data/uxa_2019/supp_table_s2.xlsx"), sheet_name = None)
             # create df of genes with chip-seq data
             chip_binding = uxa_df['allgenes'][['ENSG', 'Gene Name','TP53 ChIP sum (0..15)','DREAM components binding (0..9)', 'RB/E2F binding (0..5)']]
             # replace '.' with np.nan
@@ -626,7 +629,7 @@ class ExpressionDataset:
             self.metadata_df = self.expression_df[['condition1', 'condition2']]
             self.meta_cols = self.metadata_df.columns.to_list()
         elif self.dataset == 'motrpac_2024':
-            phospho_fns = glob.glob('/cellar/users/zkoch/dream/data/motrpac_2024/proteomics_untargeted/analysis/prot-ph/normalized-data/*normalized-protein-corrected-logratio.txt')
+            phospho_fns = glob.glob(os.path.join(REPO_ROOT, 'data/motrpac_2024/proteomics_untargeted/analysis/prot-ph/normalized-data/*normalized-protein-corrected-logratio.txt'))
             # read in each
             phospho_dfs = []
             for fn in phospho_fns:
@@ -660,7 +663,7 @@ class ExpressionDataset:
                 df_stacked['mouse_id'] = new_col
                 return df_stacked
 
-            data_dir = "/cellar/users/zkoch/dream/data/gyenis_2023"
+            data_dir = os.path.join(REPO_ROOT, "data/gyenis_2023")
             polii = "Total_pol2_20bin.xls"
             # for length
             polii_df = pd.read_excel(os.path.join(data_dir, polii), sheet_name="pol2_log2FC")
@@ -888,7 +891,7 @@ class ExpressionDataset:
         elif self.species == "mouse":
             if not hasattr(self, 'gene_converter') or self.gene_converter is None:
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+                    os.path.join(REPO_ROOT, "utilities/human_mouse_ensembl_genes.txt.gz"),
                     sep="\t", index_col=0,
                 )
             # filter to genes that exist in the converter
@@ -900,7 +903,7 @@ class ExpressionDataset:
         elif self.species == 'mouse_transcripts':
             if not hasattr(self, 'gene_converter') or self.gene_converter is None:
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+                    os.path.join(REPO_ROOT, "utilities/human_mouse_ensembl_genes.txt.gz"),
                     sep="\t", index_col=0,
                 )
             gene_ids_in_converter = [g for g in gene_ids if g in self.gene_converter.index]
@@ -916,7 +919,7 @@ class ExpressionDataset:
         elif self.species == "rat":
             if not hasattr(self, 'gene_converter') or self.gene_converter is None:
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_rat_ensembl_genes.txt",
+                    os.path.join(REPO_ROOT, "utilities/human_rat_ensembl_genes.txt"),
                     sep="\t", index_col=0,
                 )
             gene_ids_in_converter = [g for g in gene_ids if g in self.gene_converter.index]
@@ -936,7 +939,7 @@ class ExpressionDataset:
         elif self.species == 'worm':
             if not hasattr(self, 'gene_converter') or self.gene_converter is None:
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_worm_WB_ensembl_genes.tsv",
+                    os.path.join(REPO_ROOT, "utilities/human_worm_WB_ensembl_genes.tsv"),
                     sep="\t", index_col=None,
                 )
                 self.gene_converter.dropna(subset=['Human gene stable ID'], inplace=True)
@@ -961,7 +964,7 @@ class ExpressionDataset:
         if need_to_convert_genes:
             if self.species == "mouse":
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+                    os.path.join(REPO_ROOT, "utilities/human_mouse_ensembl_genes.txt.gz"),
                     sep="\t", index_col=0, 
                 )
                 # convert to mouse genes
@@ -978,7 +981,7 @@ class ExpressionDataset:
                 print("Converted DREAM genes to mouse genes")
             elif self.species == 'mouse_transcripts':
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_mouse_ensembl_genes.txt.gz",
+                    os.path.join(REPO_ROOT, "utilities/human_mouse_ensembl_genes.txt.gz"),
                     sep="\t", index_col=0, 
                 )
                 # get the mouse ensembl ids for the dream genes (e.g. ENSMUSG)
@@ -1001,7 +1004,7 @@ class ExpressionDataset:
                 print("Converted DREAM genes to mouse transcripts")
             elif self.species == "rat":
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_rat_ensembl_genes.txt",
+                    os.path.join(REPO_ROOT, "utilities/human_rat_ensembl_genes.txt"),
                     sep="\t", index_col=0, 
                 )
                 # convert to rat genes
@@ -1028,7 +1031,7 @@ class ExpressionDataset:
             elif self.species == 'worm':
                 # convert from WB gene to human gene
                 self.gene_converter = pd.read_csv(
-                    "/cellar/users/zkoch/dream/utilities/human_worm_WB_ensembl_genes.tsv",
+                    os.path.join(REPO_ROOT, "utilities/human_worm_WB_ensembl_genes.tsv"),
                     sep="\t", index_col=None, 
                 )
                 # set Human gene stable ID to index
@@ -1604,7 +1607,7 @@ class ExpressionDataset:
     def _read_gencode_v46(self) -> pd.DataFrame:
         """Read in gencode v46 grch38 annotation and process it"""
         gencode_v46 = pd.read_csv(
-            "/cellar/users/zkoch/dream/utilities/gencode.v46.basic.annotation.gtf.gz",
+            os.path.join(REPO_ROOT, "utilities/gencode.v46.basic.annotation.gtf.gz"),
             sep='\t', skiprows=5, header=None
             )
         gencode_v46.columns = ['chr', 'source', 'type', 'start', 'end', 'score', 'strand', 'frame', 'attributes']

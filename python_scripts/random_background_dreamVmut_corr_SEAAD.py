@@ -1,3 +1,7 @@
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # use cellXgene2 conda env
 import pandas as pd
 import scanpy as sc 
@@ -11,9 +15,9 @@ import sys
 import argparse
 import pickle
 # add source directory to path
-source_path = "/cellar/users/zkoch/dream"#os.path.abspath(os.path.join('..'))
-if source_path not in sys.path:
-    sys.path.append(os.path.join(source_path, 'source'))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))#os.path.abspath(os.path.join('..'))
+if REPO_ROOT not in sys.path:
+    sys.path.append(os.path.join(REPO_ROOT, 'source'))
 # read source files
 import read_data
 
@@ -142,7 +146,7 @@ def main():
     print(f"Using {n_cores} cores")
     # load expression data
     print("loading expression data", flush=True)
-    pickle_dir = f"/cellar/users/zkoch/dream/data/SEA-AD/aws_snRNA_seq/"
+    pickle_dir = os.path.join(REPO_ROOT, f'data/SEA-AD/aws_snRNA_seq/')
     fn = os.path.join(pickle_dir, f'sc_sea_ad_preprocessed_ssgsea_cellnumstart{start_cell_num}.pkl')
     with open(fn, "rb") as f:
         sea_ad = pickle.load(f)
@@ -157,7 +161,7 @@ def main():
     choose_from_background = []
     if use_cell_cycle_genes == 'True':
         cell_cycle_genes = pd.read_csv(
-            "/cellar/users/zkoch/dream/utilities/cell_cycle_genesets/cell_cycle_genes_no_dream.txt",
+            os.path.join(REPO_ROOT, "utilities/cell_cycle_genesets/cell_cycle_genes_no_dream.txt"),
             header=None
             )[0].values.tolist()
         choose_from_background = cell_cycle_genes
@@ -191,15 +195,13 @@ def main():
     
     # save to parquet
     if regress:
-        background_df.to_parquet(
-            f'/cellar/users/zkoch/dream/data/SEA-AD/cell_cycle_random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet'
-            )
-        print(f"wrote to /cellar/users/zkoch/dream/data/SEA-AD/cell_cycle_random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet")
+        out_path = os.path.join(REPO_ROOT, f'data/SEA-AD/cell_cycle_random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet')
+        background_df.to_parquet(out_path)
+        print(f"wrote to {out_path}")
     else:
-        background_df.to_parquet(
-            f'/cellar/users/zkoch/dream/data/SEA-AD/cell_cycle_random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet'
-            )
-        print(f"wrote to /cellar/users/zkoch/dream/data/SEA-AD/cell_cycle_random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet")
+        out_path = os.path.join(REPO_ROOT, f'data/SEA-AD/cell_cycle_random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet')
+        background_df.to_parquet(out_path)
+        print(f"wrote to {out_path}")
 
 if __name__ == "__main__":
     main()

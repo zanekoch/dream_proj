@@ -5,6 +5,10 @@ import glob
 import argparse
 import dask.dataframe as dd
 
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 def combine_tcgabiolinks_files(
     path: str,
     datatype: str,

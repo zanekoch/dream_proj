@@ -1,5 +1,6 @@
 import pandas as pd
-import scanpy as sc 
+import os
+import scanpy as sc
 from pybiomart import Dataset
 import statsmodels.formula.api as smf
 import gseapy
@@ -8,6 +9,9 @@ import utils
 import colorcet as cc
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class ScExpressionDataset:
     """ Class to represent a single cell expression dataset """
@@ -557,7 +561,7 @@ class ScExpressionDataset:
     def _read_gencode_m34(self) -> pd.DataFrame:
         """Read in gencode m34 and process it"""
         gencode_m34 = pd.read_csv(
-            "/cellar/users/zkoch/dream/utilities/gencode.vM34.basic.annotation.gtf.gz",
+            os.path.join(REPO_ROOT, "utilities/gencode.vM34.basic.annotation.gtf.gz"),
             sep='\t', skiprows=5, header=None
             )
         gencode_m34.columns = ['chr', 'source', 'type', 'start', 'end', 'score', 'strand', 'frame', 'attributes']

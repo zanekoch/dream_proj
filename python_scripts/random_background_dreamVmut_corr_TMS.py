@@ -1,3 +1,7 @@
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # use cellXgene2 conda env
 import pandas as pd
 import scanpy as sc 
@@ -11,9 +15,9 @@ import sys
 import argparse
 
 # add source directory to path
-source_path = "/cellar/users/zkoch/dream"#os.path.abspath(os.path.join('..'))
-if source_path not in sys.path:
-    sys.path.append(os.path.join(source_path, 'source'))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))#os.path.abspath(os.path.join('..'))
+if REPO_ROOT not in sys.path:
+    sys.path.append(os.path.join(REPO_ROOT, 'source'))
 # read source files
 import read_data
 
@@ -155,15 +159,13 @@ def main():
     background_df[mut_col] = tms.dream_expression[start_cell_num:end_cell_num, :].obs[mut_col]
     background_df[dream_col] = tms.dream_expression[start_cell_num:end_cell_num, :].obs[dream_col]
     if regress:
-        background_df.to_parquet(
-            f'/cellar/users/zkoch/dream/data/tabula_muris_senis/random_background_new_DREAM/tms_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet'
-            )
-        print(f"wrote to /cellar/users/zkoch/dream/data/tabula_muris_senis/random_background_new_DREAM/tms_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet")
+        out_path = os.path.join(REPO_ROOT, f'data/tabula_muris_senis/random_background_new_DREAM/tms_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet')
+        background_df.to_parquet(out_path)
+        print(f"wrote to {out_path}")
     else:
-        background_df.to_parquet(
-            f'/cellar/users/zkoch/dream/data/tabula_muris_senis/random_background_new_DREAM/tms_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet'
-            )
-        print(f"wrote to /cellar/users/zkoch/dream/data/tabula_muris_senis/random_background_new_DREAM/tms_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet")
+        out_path = os.path.join(REPO_ROOT, f'data/tabula_muris_senis/random_background_new_DREAM/tms_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet')
+        background_df.to_parquet(out_path)
+        print(f"wrote to {out_path}")
 
 if __name__ == "__main__":
     main()

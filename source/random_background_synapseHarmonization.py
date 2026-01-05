@@ -1,6 +1,6 @@
 # use cellXgene2 conda env
 import pandas as pd
-import scanpy as sc 
+import scanpy as sc
 import os
 from matplotlib import pyplot as plt
 import numpy as np
@@ -10,10 +10,13 @@ import gseapy
 import sys
 import argparse
 import pickle
+
+# repo root for relative paths
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # add source directory to path
-source_path = "/cellar/users/zkoch/dream"#os.path.abspath(os.path.join('..'))
-if source_path not in sys.path:
-    sys.path.append(os.path.join(source_path, 'source'))
+if os.path.join(REPO_ROOT, 'source') not in sys.path:
+    sys.path.append(os.path.join(REPO_ROOT, 'source'))
 # read source files
 import read_data
 
@@ -147,7 +150,7 @@ def main():
     choose_from_background = []
     if use_cell_cycle_genes == 'True':
         cell_cycle_genes = pd.read_csv(
-            "/cellar/users/zkoch/dream/utilities/cell_cycle_genesets/cell_cycle_genes_no_dream.txt",
+            os.path.join(REPO_ROOT, "utilities/cell_cycle_genesets/cell_cycle_genes_no_dream.txt"),
             header=None
             )[0].values.tolist()
         choose_from_background = cell_cycle_genes
@@ -169,14 +172,14 @@ def main():
     # save to parquet
     if regress:
         background_df.to_parquet(
-            f'/cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet'
+            os.path.join(REPO_ROOT, f'data/synapse_rna_seq_harmonization/random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet')
             )
-        print(f"wrote to /cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet")
+        print(f"wrote to {os.path.join(REPO_ROOT, f'data/synapse_rna_seq_harmonization/random_background/sea-ad_random_background500iter_{start_cell_num}-{end_cell_num}cells.parquet')}")
     else:
         background_df.to_parquet(
-            f'/cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/random_background/synapse_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet'
+            os.path.join(REPO_ROOT, f'data/synapse_rna_seq_harmonization/random_background/synapse_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet')
             )
-        print(f"wrote to /cellar/users/zkoch/dream/data/synapse_rna_seq_harmonization/random_background/synapse_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet")
+        print(f"wrote to {os.path.join(REPO_ROOT, f'data/synapse_rna_seq_harmonization/random_background/synapse_random_background500iter_{start_cell_num}-{end_cell_num}cells_noregress.parquet')}")
 
 if __name__ == "__main__":
     main()
