@@ -53,11 +53,14 @@ This section maps each figure in the manuscript to the specific notebook(s) wher
 ### Supplementary Figures
 
 #### Supplementary Figure 1: DREAM Activity Validation
-- **Panels 1a-b**: `notebooks/062624_TMS_analysis2.ipynb`
+- **Panels 1a-b**: - `notebooks/010324_cptac3_analysis.ipynb`
+- DREAM activity vs protein abundance and phosphorylation status 
+- **Panels 1c-d**: `notebooks/062624_TMS_analysis2.ipynb`
 - DREAM complex protein correlations
 - DREAM activity vs proliferation markers
-- **Panels 1c-d**: - `notebooks/010324_cptac3_analysis.ipynb`
-- DREAM activity vs protein abundance and phosphorylation status 
+- **Panel 1e-j**: - `notebooks/122225_revisions_TMS.ipynb`
+- DREAM activity vs proliferation markers  contd.
+- DNA repair gene expression in high vs. low DREAM
 
 #### Supplementary Figure 2: Additional TMS Analysis
 - **All panels**: `notebooks/062624_TMS_analysis2.ipynb`
@@ -88,6 +91,10 @@ This section maps each figure in the manuscript to the specific notebook(s) wher
 #### Supplementary Figure 7: Duplex sequencing 
 - **All panels**: `notebooks/081025_dream_mice_udseq2.ipynb`
 - Duplex sequencing modelling and outlier detection
+
+#### Supplementary Figure 8: The association of DREAM-related pathways with lifespan and somatic mutation burden
+- **All panels**: `notebooks/120925_revisions.ipynb`
+- Controlling for parallel transcriptional programs does not abrogrogate DREAM's assoc. with lifespan or mutation rate.
 
 
 ## Source Code Documentation
