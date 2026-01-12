@@ -14,7 +14,7 @@ This section maps each figure in the manuscript to the specific notebook(s) wher
 
 #### Figure 1: DREAM Activity Measurement and Validation
 - **Figure 1a-b (DREAM activity concept/heatmap)**: `notebooks/062624_TMS_analysis2.ipynb`
-- **Figure 1c-d (DREAM activity validation - harmine/INDY treatment and lin-52 mutation)**: `notebooks/040324_DREAM_activity_validation.ipynb`
+- **Figure 1c-d (DREAM activity validation - harmine/INDY treatment and lin-52 mutation)**: `notebooks/040324_DREAM_activity_validation.ipynb` *(notebook not included in repository)*
 
 #### Figure 2: DREAM Activity and Somatic Mutations in Single Cells (Tabula Muris Senis)
 - **All panels (2a-h)**: `notebooks/062624_TMS_analysis2.ipynb`
