@@ -202,7 +202,7 @@ uv pip install -r requirements_uv.txt --python dream_proj_env3_uv/bin/python
 
 If you use this code or data, please cite:
 
-> Koch, Z., Nandi, S.P., Licon, K., Bujarrabal-Dueso, A., Meyer, D.H., Saeed, S., Perampalam, P., Dick, F.A., Schumacher, B., Alexandrov, L.B., & Ideker, T. (2025). The DREAM complex links somatic mutation, lifespan, and disease. *[Journal TBD]*
+> Koch, Z. et al. (2025). The DREAM complex links somatic mutation, lifespan, and disease. https://www.biorxiv.org/content/10.1101/2025.09.15.676396v1
 
 ## Contact
 
