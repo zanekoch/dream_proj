@@ -148,10 +148,25 @@ Main entry point for data loading. Contains the `DatasetLoader` factory class th
 
 ## Environment Setup
 
-### Using uv (Recommended)
+There are two options for setting up the Python environment:
 
-[uv](https://github.com/astral-sh/uv) is a fast Python package manager. The project environment is located at `dream_proj_env3_uv/`.
+### Option 1: Using uv (Recommended)
 
+[uv](https://github.com/astral-sh/uv) is a fast Python package manager. This option creates a lightweight virtual environment from `requirements_uv.txt`.
+
+#### First-time setup
+```bash
+# Install uv if you don't have it
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Create the environment
+uv venv dream_proj_env3_uv --python 3.10
+
+# Install dependencies
+uv pip install -r requirements_uv.txt --python dream_proj_env3_uv/bin/python
+```
+
+#### Activating the environment
 ```bash
 # Activate the environment
 source dream_proj_env3_uv/bin/activate
@@ -162,15 +177,27 @@ python -m ipykernel install --user --name dream_proj_env3_uv --display-name "Pyt
 # Then select "Python (dream_proj_env3_uv)" as the kernel in your notebook
 ```
 
-#### Installing uv (if needed)
+### Option 2: Using conda
+
+If you prefer conda, you can create the environment from the provided yml file in `environments/`.
+
+#### First-time setup
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Create the environment from the yml file
+conda env create -f environments/dream_proj_env3.yml
+
+# This creates an environment named "dream_proj_env3"
 ```
 
-#### Recreating the environment
+#### Activating the environment
 ```bash
-uv venv dream_proj_env3_uv --python 3.10
-uv pip install -r requirements_uv.txt --python dream_proj_env3_uv/bin/python
+# Activate the environment
+conda activate dream_proj_env3
+
+# To use in Jupyter notebooks, register the kernel (one-time setup):
+python -m ipykernel install --user --name dream_proj_env3 --display-name "Python (dream_proj_env3)"
+
+# Then select "Python (dream_proj_env3)" as the kernel in your notebook
 ```
 
 ### Key Dependencies
