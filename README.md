@@ -206,6 +206,12 @@ python -m ipykernel install --user --name dream_proj_env3 --display-name "Python
 - **Statistics**: statsmodels, lifelines, scikit-learn
 - **Visualization**: colorcet, upsetplot
 
+### Tested Environments
+This code has been tested on the following systems:
+- **macOS Tahoe** (Apple Silicon)
+- **macOS Sequoia** (Apple Silicon)
+- **Linux** (SLURM HPC cluster)
+
 ## Data Architecture
 
 ### Key Datasets
